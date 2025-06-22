@@ -1,9 +1,12 @@
 'use client';
 import Link from "next/link";
 import { useState, useEffect } from "react";
+import { usePathname } from "next/navigation";
+
 
 export default function Header() {
     const [scrolled, setScrolled] = useState(false);
+    const pathname = usePathname();
 
     useEffect(() => {
         const handleScroll = () => {
@@ -28,11 +31,11 @@ export default function Header() {
             <div
                 className={`
                     fixed flex justify-between items-center p-4
-                    bg-amber-100 text-black
+                    bg-white border-b border-zinc-100 text-black
                     transition-all  duration-0
                     ${scrolled
                        
-                        ? 'max-w-4xl w-[90%] top-4 rounded-xl shadow-lg left-1/2 -translate-x-1/2'
+                        ? 'max-w-4xl w-[90%] top-4 rounded-xl shadow-lg left-1/2 -translate-x-1/2  `'
                        
                         : 'w-full top-0'
                     }
@@ -46,10 +49,10 @@ export default function Header() {
                 <div className="flex items-center gap-8">
                     <nav className="flex gap-6">
                        
-                        <Link href="/launches">Launches</Link>
-                        <Link href="/products">Products</Link>
-                        <Link href="/newsletter">Newsletter</Link>
-                        <Link href="/community">Community</Link>
+                        <Link href="/launches" className={`p-2 ${pathname === '/launches' ? 'bg-green-200 rounded-lg' : ''}`}>Launches</Link>
+                        <Link href="/products" className={`p-2 ${pathname === '/products' ? 'bg-green-200 rounded-lg' : ''}`}>Products</Link>
+                        <Link href="/newsletter" className={`p-2 ${pathname === '/newsletter' ? 'bg-green-200 rounded-lg' : ''}`}>Newsletter</Link>
+                        <Link href="/community" className={`p-2 ${pathname === '/community' ? 'bg-green-200 rounded-lg' : ''}`}>Community</Link>
                     </nav>
                     <div className="flex gap-4">
                         <button className="bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-700">
