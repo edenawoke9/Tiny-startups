@@ -102,6 +102,36 @@ const UpvoteIcon = () => (
     </svg>
 );
 
+const StartupItem = ({ startup }: { startup: any }) => (
+    <div className="bg-white p-4 rounded-xl shadow-sm border flex items-center gap-x-4 w-full">
+        {startup.icon &&
+            <div className="bg-gray-100 p-2 rounded-lg text-2xl h-12 w-12 flex items-center justify-center flex-shrink-0">
+                {startup.icon}
+            </div>
+        }
+
+        <div className="flex-grow">
+            <div className="flex items-center gap-x-2">
+                <h3 className="font-bold text-base">{startup.name}</h3>
+                {startup.promoted && (
+                    <span className="flex items-center gap-x-1 text-xs text-yellow-700 font-semibold bg-yellow-100 px-2 py-1 rounded-md whitespace-nowrap">
+                        <StarIcon />
+                        Promoted
+                    </span>
+                )}
+            </div>
+            <p className="text-gray-500 text-sm mt-1">{startup.desc}</p>
+        </div>
+
+        {(startup.votes !== null && startup.votes !== undefined) && (
+            <div className="flex flex-col items-center justify-center border rounded-lg p-2 w-16 h-16 flex-shrink-0">
+                <UpvoteIcon />
+                <p className="text-sm font-semibold">{startup.votes}</p>
+            </div>
+        )}
+    </div>
+);
+
 export default function Products({ActiveWeek}:{ActiveWeek:any}){
     return(
         <div>
@@ -118,33 +148,27 @@ export default function Products({ActiveWeek}:{ActiveWeek:any}){
 
             <div className="space-y-4 mt-4">
             {startups.map((startup, index) => (
-                <div key={index} className="bg-white p-4 rounded-xl shadow-sm border flex items-center gap-x-4 w-full">
-                    <div className="bg-gray-100 p-2 rounded-lg text-2xl h-12 w-12 flex items-center justify-center flex-shrink-0">
-                        {startup.icon}
-                    </div>
-
-                    <div className="flex-grow">
-                        <div className="flex items-center gap-x-2">
-                            <h3 className="font-bold text-base">{startup.name}</h3>
-                            {startup.promoted && (
-                                <span className="flex items-center gap-x-1 text-xs text-yellow-700 font-semibold bg-yellow-100 px-2 py-1 rounded-md whitespace-nowrap">
-                                    <StarIcon />
-                                    Promoted
-                                </span>
-                            )}
-                        </div>
-                        <p className="text-gray-500 text-sm mt-1">{startup.desc}</p>
-                    </div>
-
-                    {startup.votes !== null && (
-                        <div className="flex flex-col items-center justify-center border rounded-lg p-2 w-16 h-16 flex-shrink-0">
-                            <UpvoteIcon />
-                            <p className="text-sm font-semibold">{startup.votes}</p>
-                        </div>
-                    )}
-                </div>
+                <StartupItem key={index} startup={startup} />
             ))}
-        </div>
+            </div>
+
+            <div className="mt-8">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">Featured this week</h2>
+                <div className="space-y-4">
+                    {featured.map((startup, index) => (
+                        <StartupItem key={index} startup={startup} />
+                    ))}
+                </div>
+            </div>
+
+            <div className="mt-8">
+                <h2 className="text-xl font-bold text-gray-800 mb-4">More from this week</h2>
+                <div className="space-y-4">
+                    {moreStartups.map((startup, index) => (
+                        <StartupItem key={index} startup={startup} />
+                    ))}
+                </div>
+            </div>
       </div>
     )
 }
