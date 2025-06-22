@@ -2,21 +2,31 @@
 import React, { useState, useRef } from "react";
 import { getYear, getISOWeeksInYear, setISOWeek, startOfISOWeek, endOfISOWeek, format } from 'date-fns';
 import Products from "../components/products/products";
+import RightCom from "../components/rightCom";
+import Header from "@/components/navbar/nav";
 
 export default function Home() {
   return (
-    <div className="flex flex-col items-center justify-center bg-white">
-    <div className="bg-[#fafbfc] text-4xl min-h-screen w-1/2 flex flex-col  text-black font-sans">
+    <div className="flex flex-col">
+      <Header/>
+    <div className="flex pl-24 pr-24 pt-10 gap-10  h-screen justify-between bg-white w-full">
+    <div className="bg-[#fafbfc] text-4xl flex-1 flex flex-col min-w-0 text-black font-sans">
       <div>
         <h1>Welcome To <span className="bg-gradient-to-r from-[#e14eca] to-[#3b82f6] bg-clip-text text-transparent">Tiny Startups</span></h1>
         <p className="text-gray-500 text-xl">The launch platfrom for your tiny startups and side projects</p>
       </div>
-      <div className="border-t mt-4 ">
+      <div className="border-t mt-4  ">
         <WeekList />
+        <WeekList />
+        <WeekList />
+        
       </div>
       
     </div>
+    <div className="flex-1">
+      <RightCom />
     </div>
+    </div></div>
   );
 }
 
@@ -46,7 +56,7 @@ export function WeekList(){
   };
 
   return(
-    <div className="w-full">
+    <div >
       <div className="flex items-center gap-2 text-sm mt-4">
        <button onClick={() => scroll('left')} className="p-2 text-xl text-gray-400 hover:text-black">
         {'<'}
