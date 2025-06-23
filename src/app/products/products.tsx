@@ -1,75 +1,10 @@
 'use client';
 import React from 'react';
+import { useRouter} from 'next/navigation';
+import products from '@/lib/products.json';
+const startups = products.startups;
+const moreStartups = products.moreStartups;
 
-const startups = [
-  {
-    name: "GrayBlocks",
-    desc: "2700+ blocks & components to build premium websites without code.",
-    icon: "🟪",
-    promoted: true,
-    votes: null,
-  },
-  {
-    name: "Endorsely",
-    desc: "Grow your MRR with the #1 free affiliate marketing software for SaaS.",
-    icon: "⭐",
-    promoted: true,
-    votes: null,
-  },
-  {
-    name: "Brilliant Design",
-    desc: "Turn any screen into figma.",
-    icon: "🌈",
-    promoted: false,
-    votes: 78,
-  },
-  {
-    name: "Lorelight",
-    desc: "AI brand monitoring across ChatGPT, Claude & Gemini",
-    icon: "🌟",
-    promoted: false,
-    votes: 70,
-  },
-];
-
-const moreStartups = [
-  {
-    name: "Brilliant Design",
-    desc: "Turn any screen into figma.",
-    icon: "🌈",
-    votes: 78,
-  },
-  {
-    name: "Lorelight",
-    desc: "AI brand monitoring across ChatGPT, Claude & Gemini",
-    icon: "🌟",
-    votes: 70,
-  },
-  {
-    name: "Chatform",
-    desc: "100% AI-powered forms. Chat or share your website to instantly...",
-    icon: "🗨️",
-    votes: 69,
-  },
-  {
-    name: "BlogMaker",
-    desc: "Create beautiful SEO ready blogs in minutes.",
-    icon: "📝",
-    votes: 66,
-  },
-  {
-    name: "Audioread",
-    desc: "Turn any text into natural audio in 80+ languages.",
-    icon: "🔊",
-    votes: 59,
-  },
-  {
-    name: "Pagetune",
-    desc: "Enter your URL and get a stunning, AI-powered redesign in...",
-    icon: "🌀",
-    votes: 58,
-  },
-];
 
 const featured = [
   {
@@ -102,8 +37,9 @@ const UpvoteIcon = () => (
     </svg>
 );
 
+
 const StartupItem = ({ startup }: { startup: any }) => (
-    <div className="bg-white p-4 rounded-xl shadow-sm border flex items-center gap-x-4 w-full">
+    <div className="bg-white p-4 rounded-xl shadow-sm w-3xl flex items-center gap-x-4 ">
         {startup.icon &&
             <div className="bg-gray-100 p-2 rounded-lg text-2xl h-12 w-12 flex items-center justify-center flex-shrink-0">
                 {startup.icon}
@@ -124,7 +60,7 @@ const StartupItem = ({ startup }: { startup: any }) => (
         </div>
 
         {(startup.votes !== null && startup.votes !== undefined) && (
-            <div className="flex flex-col items-center justify-center border rounded-lg p-2 w-16 h-16 flex-shrink-0">
+            <div className="flex flex-col items-center justify-center border border-zinc-200 rounded-lg p-2 w-16 h-16 flex-shrink-0">
                 <UpvoteIcon />
                 <p className="text-sm font-semibold">{startup.votes}</p>
             </div>
@@ -133,14 +69,19 @@ const StartupItem = ({ startup }: { startup: any }) => (
 );
 
 export default function Products({ActiveWeek}:{ActiveWeek:any}){
+    const router = useRouter();
+    const handleClick = (startup: any) => {
+      let name= startup.name
+        router.push(`/products/${name}`);
+    }
     return(
         <div>
-            <div className="flex justify-between items-center py-4 mt-4">
+            <div className="flex justify-between  items-center py-4 mt-4">
                 <div>
-                <h2 className="text-3xl font-serif">Week {ActiveWeek.week}</h2>
+                <h2 className="text-2xl font-serif">Week {ActiveWeek.week}</h2>
                 <p className="text-base text-gray-500">{ActiveWeek.range}</p>
                 </div>
-                <button className="border border-green-600 text-green-600 font-bold py-2 px-5 rounded-lg flex items-center gap-x-2 text-base">
+                <button className="border border-green-600 text-green-600 font-bold  px-5 rounded-lg flex items-center gap-x-2 text-base">
                 <span>Launch</span>
                 <span className="text-xl">&rarr;</span>
                 </button>
@@ -148,7 +89,7 @@ export default function Products({ActiveWeek}:{ActiveWeek:any}){
 
             <div className="space-y-4 mt-4">
             {startups.map((startup, index) => (
-                <StartupItem key={index} startup={startup} />
+              <button key={index} onClick={() => handleClick(startup)}> <StartupItem key={index} startup={startup} /></button>
             ))}
             </div>
 
@@ -156,7 +97,7 @@ export default function Products({ActiveWeek}:{ActiveWeek:any}){
                 <h2 className="text-xl font-bold text-gray-800 mb-4">Featured this week</h2>
                 <div className="space-y-4">
                     {featured.map((startup, index) => (
-                        <StartupItem key={index} startup={startup} />
+                      <button key={index} onClick={() => handleClick(startup)}> <StartupItem key={index} startup={startup} /></button>
                     ))}
                 </div>
             </div>
@@ -165,7 +106,7 @@ export default function Products({ActiveWeek}:{ActiveWeek:any}){
                 <h2 className="text-xl font-bold text-gray-800 mb-4">More from this week</h2>
                 <div className="space-y-4">
                     {moreStartups.map((startup, index) => (
-                        <StartupItem key={index} startup={startup} />
+                      <button key={index} onClick={() => handleClick(startup)}> <StartupItem key={index} startup={startup} /></button>
                     ))}
                 </div>
             </div>

@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { usePathname } from "next/navigation";
 
 
+
+
 export default function Header() {
     const [scrolled, setScrolled] = useState(false);
     const pathname = usePathname();
@@ -35,7 +37,7 @@ export default function Header() {
                     transition-all  duration-0
                     ${scrolled
                        
-                        ? 'max-w-4xl w-[90%] top-4 rounded-xl shadow-lg left-1/2 -translate-x-1/2  `'
+                        ? 'max-w-6xl w-[90%] top-4 rounded-xl shadow-lg left-1/2 -translate-x-1/2  `'
                        
                         : 'w-full top-0'
                     }
@@ -55,8 +57,8 @@ export default function Header() {
                         <Link href="/community" className={`p-2 ${pathname === '/community' ? 'bg-green-200 rounded-lg' : ''}`}>Community</Link>
                     </nav>
                     <div className="flex gap-4">
-                        <button className="bg-slate-800 text-white px-4 py-2 rounded-lg hover:bg-slate-700">
-                            Launch
+                        <button className="bg-white text-black flex items-center border-zinc-200 border gap-4 px-4 py-2 rounded-lg hover:text-white hover:bg-slate-700">
+                           <h1 className=" h-5 w-5 flex items-center justify-center rounded-full border border-zinc-200">+</h1> Launch
                         </button>
                         <button className="bg-gray-200 px-4 py-2 rounded-lg hover:bg-gray-300">
                             Sign Up
