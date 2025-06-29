@@ -144,13 +144,9 @@ export default function Products({ ActiveWeek }: { ActiveWeek: any }) {
             <h2 className="text-3xl font-bold text-gray-800">🚀 Top Startups</h2>
             <div className="h-1 flex-1 bg-gradient-to-r from-orange-400 to-transparent rounded-full"></div>
           </div>
-          <div className="space-y-6">
+          <div className="space-y-4 mt-4">
             {startups.map((startup, index) => (
-              <button
-                key={index}
-                onClick={() => handleClick(startup)}
-                className="w-full text-left focus:outline-none focus:ring-4 focus:ring-orange-200 rounded-2xl transition-all duration-200"
-              >
+              <button key={index} onClick={() => handleClick(startup)} className="w-full text-left">
                 <StartupItem startup={startup} index={index} />
               </button>
             ))}
@@ -163,16 +159,15 @@ export default function Products({ ActiveWeek }: { ActiveWeek: any }) {
             <h2 className="text-3xl font-bold text-gray-800">⭐ Featured This Week</h2>
             <div className="h-1 flex-1 bg-gradient-to-r from-yellow-400 to-transparent rounded-full"></div>
           </div>
-          <div className="grid gap-6">
-            {featured.map((startup, index) => (
-              <button
-                key={index}
-                onClick={() => handleClick(startup)}
-                className="w-full text-left focus:outline-none focus:ring-4 focus:ring-yellow-200 rounded-2xl transition-all duration-200"
-              >
-                <StartupItem startup={startup} index={index} isPromoted={true} />
-              </button>
-            ))}
+          <div className="mt-8">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">Featured this week</h2>
+            <div className="space-y-4">
+              {featured.map((startup, index) => (
+                <button key={index} onClick={() => handleClick(startup)} className="w-full text-left">
+                  <StartupItem startup={startup} index={index} isPromoted={true} />
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -182,16 +177,15 @@ export default function Products({ ActiveWeek }: { ActiveWeek: any }) {
             <h2 className="text-3xl font-bold text-gray-800">💎 More Discoveries</h2>
             <div className="h-1 flex-1 bg-gradient-to-r from-purple-400 to-transparent rounded-full"></div>
           </div>
-          <div className="space-y-6">
-            {moreStartups.map((startup, index) => (
-              <button
-                key={index}
-                onClick={() => handleClick(startup)}
-                className="w-full text-left focus:outline-none focus:ring-4 focus:ring-purple-200 rounded-2xl transition-all duration-200"
-              >
-                <StartupItem startup={startup} index={startups.length + featured.length + index} />
-              </button>
-            ))}
+          <div className="mt-8">
+            <h2 className="text-xl font-bold text-gray-800 mb-4">More from this week</h2>
+            <div className="space-y-4">
+              {moreStartups.map((startup, index) => (
+                <button key={index} onClick={() => handleClick(startup)} className="w-full text-left">
+                  <StartupItem startup={startup} index={startups.length + featured.length + index} />
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
