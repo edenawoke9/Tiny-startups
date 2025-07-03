@@ -1,0 +1,89 @@
+{
+  "startups": [
+    {
+      "name": "GrayBlocks",
+      "desc": "2700+ blocks & components to build premium websites without code.",
+      "icon": "🟪",
+      "promoted": true,
+      "votes": null
+    },
+    {
+      "name": "Endorsely",
+      "desc": "Grow your MRR with the #1 free affiliate marketing software for SaaS.",
+      "icon": "⭐",
+      "promoted": true,
+      "votes": null
+    },
+    {
+      "name": "Brilliant Design",
+      "desc": "Turn any screen into figma.",
+      "icon": "🌈",
+      "promoted": false,
+      "votes": 78
+    },
+    {
+      "name": "Lorelight",
+      "desc": "AI brand monitoring across ChatGPT, Claude & Gemini",
+      "icon": "🌟",
+      "promoted": false,
+      "votes": 70
+    }
+  ],
+  "moreStartups": [
+    {
+      "name": "Brilliant Design",
+      "desc": "Turn any screen into figma.",
+      "icon": "🌈",
+      "votes": 78
+    },
+    {
+      "name": "Lorelight",
+      "desc": "AI brand monitoring across ChatGPT, Claude & Gemini",
+      "icon": "🌟",
+      "votes": 70
+    },
+    {
+      "name": "Chatform",
+      "desc": "100% AI-powered forms. Chat or share your website to instantly...",
+      "icon": "🗨️",
+      "votes": 69
+    },
+    {
+      "name": "BlogMaker",
+      "desc": "Create beautiful SEO ready blogs in minutes.",
+      "icon": "📝",
+      "votes": 66
+    },
+    {
+      "name": "Audioread",
+      "desc": "Turn any text into natural audio in 80+ languages.",
+      "icon": "🔊",
+      "votes": 59
+    },
+    {
+      "name": "Pagetune",
+      "desc": "Enter your URL and get a stunning, AI-powered redesign in...",
+      "icon": "🌀",
+      "votes": 58
+    }
+  ],
+  "featured": [
+    {
+      "name": "Social Intents",
+      "desc": "AI Chatbots backed by your team in Microsoft Teams, Slack, and Google Chat."
+    },
+    {
+      "name": "Capgo",
+      "desc": "Instant updates for Capacitor. Ship updates, fixes, changes, and features..."
+    },
+    {
+      "name": "ServerScheduler",
+      "desc": "Slash cloud costs with server scheduling. AWS, GCP, Azure."
+    },
+    {
+      "name": "Startups.fm",
+      "desc": ""
+    }
+  ]
+}
+  
