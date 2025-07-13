@@ -1,9 +1,7 @@
 "use client"
 import { useRouter } from "next/navigation"
-import products from "@/lib/products.json"
-
-const startups = products.startups
-const moreStartups = products.moreStartups
+import { useState, useEffect } from "react"
+import { getProducts, getProduct } from "../../lib/firestore"
 
 const featured = [
   {
@@ -21,6 +19,25 @@ const featured = [
   {
     name: "Startups.fm",
     desc: "The ultimate startup discovery platform for entrepreneurs and investors.",
+  },
+]
+
+const moreStartups = [
+  {
+    name: "DevFlow",
+    desc: "Streamline your development workflow with intelligent automation.",
+  },
+  {
+    name: "DataViz",
+    desc: "Beautiful data visualizations for your business insights.",
+  },
+  {
+    name: "CloudSync",
+    desc: "Seamless cloud synchronization across all your devices.",
+  },
+  {
+    name: "AI Assistant",
+    desc: "Your personal AI assistant for productivity and creativity.",
   },
 ]
 
@@ -74,27 +91,12 @@ const StartupItem = ({ startup, index, isPromoted = false }: { startup: any; ind
       isPromoted ? "ring-2 ring-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50" : ""
     }`}
   >
-    {/* Rank number */}
-    <div className="absolute -left-3 -top-3 w-8 h-8 bg-gradient-to-br from-gray-800 to-gray-600 text-white rounded-full flex items-center justify-center text-sm font-bold shadow-lg">
-      {index + 1}
-    </div>
+   
 
-    {/* Promoted badge */}
-    {startup.promoted && (
-      <div className="absolute -right-2 -top-2">
-        <span className="flex items-center gap-x-1 text-xs text-orange-700 font-bold bg-gradient-to-r from-orange-100 to-yellow-100 px-3 py-1 rounded-full shadow-sm border border-orange-200">
-          <StarIcon />
-          Promoted
-        </span>
-      </div>
-    )}
-
-    <div className="flex items-center gap-x-5">
-      {startup.icon && (
+          <div className="flex items-center gap-x-5">
         <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-3 rounded-xl text-2xl h-16 w-16 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-300">
-          {startup.icon}
+          {startup.name.charAt(0).toUpperCase()}
         </div>
-      )}
 
       <div className="flex-grow min-w-0">
         <div className="flex items-center gap-x-3 mb-2">
@@ -121,88 +123,157 @@ const StartupItem = ({ startup, index, isPromoted = false }: { startup: any; ind
   </div>
 )
 
-export default function Products({ ActiveWeek }: { ActiveWeek: any }) {
+export default function Products({ ActiveMonth }: { ActiveMonth: any }) {
+  const [startups, setStartups] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const router = useRouter()
+
+  
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        setLoading(true)
+        const products = await getProducts()
+        setStartups(products || [])
+        setError(null)
+      } catch (err) {
+        console.error("Error fetching products:", err)
+        setError("Failed to load products")
+        setStartups([])
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProducts()
+  }, [])
 
   const handleClick = (startup: any) => {
     const name = startup.name
     router.push(`/products/${name}`)
   }
 
+  const handleProductClick = async (startup: any) => {
+    try {
+      
+      const productDetails = await getProduct(startup.id || startup.name)
+      console.log("Product details:", productDetails)
+      
+     
+      router.push(`/products/${startup.id}`)
+    } catch (err) {
+      console.error("Error fetching product details:", err)
+     
+      router.push(`/products/${startup.name}`)
+    }
+
+  }
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading products...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100 flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      <div className="max-w-4xl mx-auto px-6 py-8">
-        {/* Header Section */}
-        <div className=" top-0  mb-12">
-          <div className="absolute inset-0 bg-gradient-to-r rounded-3xl opacity-10"></div>
-          
-        </div>
+      <h1 className="text-2xl font-light font-serif text-gray-800 flex justify-start mt-10">
+        {ActiveMonth.name}
+      </h1>
 
-        {/* Top Startups Section */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">🚀 Top Startups</h2>
-            <div className="h-1 flex-1 bg-gradient-to-r from-orange-400 to-transparent rounded-full"></div>
-          </div>
-          <div className="space-y-4 mt-4">
-            {startups.map((startup, index) => (
-              <button key={index} onClick={() => handleClick(startup)} className="w-full text-left">
+      {/* Top Startups Section */}
+      <div className="mb-16 mt-10">
+        <div className="flex items-center gap-3 mb-8">
+          <h2 className="text-3xl font-bold text-gray-800">🚀 Top Startups</h2>
+          <div className="h-1 flex-1 bg-gradient-to-r from-orange-400 to-transparent rounded-full"></div>
+        </div>
+        <div className="space-y-4 mt-4">
+          {startups.length > 0 ? (
+            startups.map((startup, index) => (
+              <button key={startup.id || index} onClick={() => handleProductClick(startup)} className="w-full text-left">
                 <StartupItem startup={startup} index={index} />
+              </button>
+            ))
+          ) : (
+            <div className="text-center py-8 text-gray-500">
+              <p>No products found for this month.</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Featured Section */}
+      <div className="mb-16">
+        <div className="flex items-center gap-3 mb-8">
+          <h2 className="text-3xl font-bold text-gray-800">⭐ Featured This Week</h2>
+          <div className="h-1 flex-1 bg-gradient-to-r from-yellow-400 to-transparent rounded-full"></div>
+        </div>
+        <div className="mt-8">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">Featured this week</h2>
+          <div className="space-y-4">
+            {featured.map((startup, index) => (
+              <button key={index} onClick={() => handleClick(startup)} className="w-full text-left">
+                <StartupItem startup={startup} index={index} isPromoted={true} />
               </button>
             ))}
           </div>
         </div>
+      </div>
 
-        {/* Featured Section */}
-        <div className="mb-16">
-          <div className="flex items-center gap-3 mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">⭐ Featured This Week</h2>
-            <div className="h-1 flex-1 bg-gradient-to-r from-yellow-400 to-transparent rounded-full"></div>
-          </div>
-          <div className="mt-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">Featured this week</h2>
-            <div className="space-y-4">
-              {featured.map((startup, index) => (
-                <button key={index} onClick={() => handleClick(startup)} className="w-full text-left">
-                  <StartupItem startup={startup} index={index} isPromoted={true} />
-                </button>
-              ))}
-            </div>
+      {/* More Startups Section */}
+      <div className="mb-12">
+        <div className="flex items-center gap-3 mb-8">
+          <h2 className="text-3xl font-bold text-gray-800">💎 More Discoveries</h2>
+          <div className="h-1 flex-1 bg-gradient-to-r from-purple-400 to-transparent rounded-full"></div>
+        </div>
+        <div className="mt-8">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">More from this week</h2>
+          <div className="space-y-4">
+            {moreStartups.map((startup, index) => (
+              <button key={index} onClick={() => handleClick(startup)} className="w-full text-left">
+                <StartupItem startup={startup} index={startups.length + featured.length + index} />
+              </button>
+            ))}
           </div>
         </div>
+      </div>
 
-        {/* More Startups Section */}
-        <div className="mb-12">
-          <div className="flex items-center gap-3 mb-8">
-            <h2 className="text-3xl font-bold text-gray-800">💎 More Discoveries</h2>
-            <div className="h-1 flex-1 bg-gradient-to-r from-purple-400 to-transparent rounded-full"></div>
-          </div>
-          <div className="mt-8">
-            <h2 className="text-xl font-bold text-gray-800 mb-4">More from this week</h2>
-            <div className="space-y-4">
-              {moreStartups.map((startup, index) => (
-                <button key={index} onClick={() => handleClick(startup)} className="w-full text-left">
-                  <StartupItem startup={startup} index={startups.length + featured.length + index} />
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
-        {/* Footer CTA */}
-        <div className="text-center py-12">
-          <div className="bg-gradient-to-r from-gray-800 to-gray-600 rounded-3xl p-8 text-white">
-            <h3 className="text-2xl font-bold mb-4">Ready to Launch Your Startup?</h3>
-            <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
-              Join thousands of entrepreneurs who have successfully launched their startups. Get featured in our weekly
-              showcase and reach potential customers and investors.
-            </p>
-            <button className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
-              Submit Your Startup
-            </button>
-          </div>
+      {/* Footer CTA */}
+      <div className="text-center py-12">
+        <div className="bg-gradient-to-r from-gray-800 to-gray-600 rounded-3xl p-8 text-white">
+          <h3 className="text-2xl font-bold mb-4">Ready to Launch Your Startup?</h3>
+          <p className="text-gray-300 mb-6 max-w-2xl mx-auto">
+            Join thousands of entrepreneurs who have successfully launched their startups. Get featured in our weekly
+            showcase and reach potential customers and investors.
+          </p>
+          <button className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+            Submit Your Startup
+          </button>
         </div>
       </div>
     </div>
   )
 }
+

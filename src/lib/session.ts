@@ -1,0 +1,1 @@
+// Placeholder for Firebase session logic to be added later. 

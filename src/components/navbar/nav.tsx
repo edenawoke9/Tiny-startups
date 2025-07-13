@@ -91,12 +91,12 @@ export default function Header() {
           </nav>
 
           <div className="flex gap-3">
-            <button className="group bg-white text-gray-700 flex items-center border border-gray-200 gap-3 px-5 py-2.5 rounded-xl hover:bg-gradient-to-r hover:from-gray-800 hover:to-gray-700 hover:text-white hover:border-gray-800 transition-all duration-300 shadow-sm hover:shadow-md font-medium">
+            <Link href="/submit-product"  className="group bg-white text-gray-700 flex items-center border border-gray-200 gap-3 px-5 py-2.5 rounded-xl hover:bg-gradient-to-r hover:from-gray-800 hover:to-gray-700 hover:text-white hover:border-gray-800 transition-all duration-300 shadow-sm hover:shadow-md font-medium">
               <div className="h-5 w-5 flex items-center justify-center rounded-full border border-gray-300 group-hover:border-white transition-colors duration-300 text-sm font-bold">
                 +
               </div>
               Launch
-            </button>
+            </Link>
             <Auth/>
           </div>
         </div>
