@@ -1,73 +1,15 @@
 "use client"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
-import { getProducts, getProduct } from "../../lib/firestore"
+import { getProducts, getProduct,upvoteProduct } from "../../lib/firestore"
+import { MessageCircle} from "lucide-react"
+import { CircleChevronUp } from "lucide-react"
+import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
 
-const featured = [
-  {
-    name: "Social Intents",
-    desc: "AI Chatbots backed by your team in Microsoft Teams, Slack, and Google Chat.",
-  },
-  {
-    name: "Capgo",
-    desc: "Instant updates for Capacitor. Ship updates, fixes, changes, and features...",
-  },
-  {
-    name: "ServerScheduler",
-    desc: "Slash cloud costs with server scheduling. AWS, GCP, Azure.",
-  },
-  {
-    name: "Startups.fm",
-    desc: "The ultimate startup discovery platform for entrepreneurs and investors.",
-  },
-]
 
-const moreStartups = [
-  {
-    name: "DevFlow",
-    desc: "Streamline your development workflow with intelligent automation.",
-  },
-  {
-    name: "DataViz",
-    desc: "Beautiful data visualizations for your business insights.",
-  },
-  {
-    name: "CloudSync",
-    desc: "Seamless cloud synchronization across all your devices.",
-  },
-  {
-    name: "AI Assistant",
-    desc: "Your personal AI assistant for productivity and creativity.",
-  },
-]
 
-const StarIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="14"
-    height="14"
-    viewBox="0 0 24 24"
-    fill="currentColor"
-    className="text-yellow-500"
-  >
-    <path d="M12 .587l3.668 7.568 8.332 1.151-6.064 5.828 1.48 8.279L12 18.896l-7.416 4.517 1.48-8.279-6.064-5.828 8.332-1.151z" />
-  </svg>
-)
 
-const UpvoteIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="18"
-    height="18"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    className="text-gray-600"
-  >
-    <path d="m18 15-6-6-6 6" />
-  </svg>
-)
+
 
 const TrendingIcon = () => (
   <svg
@@ -85,43 +27,83 @@ const TrendingIcon = () => (
   </svg>
 )
 
-const StartupItem = ({ startup, index, isPromoted = false }: { startup: any; index: number; isPromoted?: boolean }) => (
-  <div
-    className={`group  bg-white hover:bg-gray-50 p-6 rounded-2xl shadow-sm hover:shadow-lg border border-gray-100 hover:border-gray-200 transition-all duration-300 ease-in-out transform hover:-translate-y-1 z-40${
-      isPromoted ? "ring-2 ring-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50" : ""
-    }`}
-  >
-   
 
-          <div className="flex items-center gap-x-5">
-        <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-3 rounded-xl text-2xl h-16 w-16 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-300">
+ function StartupItem ({ startup, index, isPromoted = false, id }: { startup: any; index: number; isPromoted?: boolean; id:string; }){
+  const {user}=useFirebaseAuth()
+  const [upvote, setUpvote] = useState<number>(startup.upvotes)
+  const [hasUpvoted, setHasUpvoted] = useState<boolean>(user ? startup.upvotedBy.includes(user.uid) : false)
+  const [loading, setLoading] = useState(false)
+
+  // Sync local state with prop changes
+  useEffect(() => {
+    setUpvote(startup.upvotes)
+    setHasUpvoted(user ? startup.upvotedBy.includes(user.uid) : false)
+  }, [startup.upvotes, startup.upvotedBy, user])
+
+  const handleUpvote = async (startup: any) => {
+    if (!user) return;
+    setLoading(true)
+    try {
+      await upvoteProduct(startup.id, user.uid);
+      // Fetch updated product data (simulate by toggling local state for immediate feedback)
+      if (hasUpvoted) {
+        setUpvote(u => u - 1)
+        setHasUpvoted(false)
+      } else {
+        setUpvote(u => u + 1)
+        setHasUpvoted(true)
+      }
+      // In a real app, you might want to refetch the product from the server here
+    } catch (err) {
+      // Optionally handle error
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return <>
+    <div
+      className={`group  bg-white hover:bg-gray-50  rounded-2xl shadow-sm hover:shadow-lg border border-gray-100 p-2 hover:border-gray-200 transition-all duration-300 ease-in-out transform hover:-translate-y-1 z-40${
+        isPromoted ? "ring-2 ring-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50" : ""
+      }`}
+    >
+      <div className="flex items-center gap-x-5">
+        <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-3 rounded-xl text-2xl h-14 w-14 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-300">
           {startup.name.charAt(0).toUpperCase()}
         </div>
-
-      <div className="flex-grow min-w-0">
-        <div className="flex items-center gap-x-3 mb-2">
-          <h3 className="font-bold text-lg text-gray-900 group-hover:text-gray-700 transition-colors duration-200">
-            {startup.name}
-          </h3>
-          {isPromoted && (
-            <div className="flex items-center gap-1">
-              <TrendingIcon />
-              <span className="text-xs font-semibold text-green-600">Trending</span>
-            </div>
-          )}
+        <div className="flex-grow min-w-0">
+          <div className="flex items-center gap-x-3 mb-2">
+            <h3 className="font-bold text-lg text-gray-900 group-hover:text-gray-700 transition-colors duration-200">
+              {startup.name}
+            </h3>
+            {isPromoted && (
+              <div className="flex items-center gap-1">
+                <TrendingIcon />
+                <span className="text-xs font-semibold text-green-600">Trending</span>
+              </div>
+            )}
+          </div>
+          <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">{startup.desc}</p>
         </div>
-        <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">{startup.desc}</p>
+        <div className="flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 hover:from-orange-50 hover:to-orange-100 border border-gray-200 hover:border-orange-300 rounded-xl  w-14 h-14 flex-shrink-0 transition-all duration-300 group-hover:scale-105">
+          <MessageCircle />
+          <p className="text-sm font-bold text-gray-700 mt-1">{startup.commentsCount || 0}</p>
+        </div>
+        <button
+          disabled={!user || loading}
+          onClick={e => {
+            e.stopPropagation();
+            handleUpvote(startup);
+          }}
+          className={`flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 hover:from-orange-50 hover:to-orange-100 border border-gray-200 hover:border-orange-300 rounded-xl  w-14 h-14 flex-shrink-0 transition-all duration-300 group-hover:scale-105 ${hasUpvoted ? 'bg-orange-100 border-orange-300' : ''}`}
+        >
+          <CircleChevronUp />
+          <p className="text-sm font-bold text-gray-700 mt-1">{upvote || 0}</p>
+        </button>
       </div>
-
-      {startup.votes !== null && startup.votes !== undefined && (
-        <div className="flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 hover:from-orange-50 hover:to-orange-100 border border-gray-200 hover:border-orange-300 rounded-xl p-3 w-20 h-20 flex-shrink-0 transition-all duration-300 group-hover:scale-105">
-          <UpvoteIcon />
-          <p className="text-sm font-bold text-gray-700 mt-1">{startup.votes}</p>
-        </div>
-      )}
     </div>
-  </div>
-)
+  </>
+}
 
 export default function Products({ ActiveMonth }: { ActiveMonth: any }) {
   const [startups, setStartups] = useState<any[]>([])
@@ -198,23 +180,25 @@ export default function Products({ ActiveMonth }: { ActiveMonth: any }) {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-100">
-      <h1 className="text-2xl font-light font-serif text-gray-800 flex justify-start mt-10">
-        {ActiveMonth.name}
-      </h1>
+    <div className="min-h-screen ">
+      
 
       {/* Top Startups Section */}
       <div className="mb-16 mt-10">
         <div className="flex items-center gap-3 mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">🚀 Top Startups</h2>
-          <div className="h-1 flex-1 bg-gradient-to-r from-orange-400 to-transparent rounded-full"></div>
+          <h2 className="text-3xl font-semibold text-gray-800"> Top Startups</h2>
+         
         </div>
         <div className="space-y-4 mt-4">
           {startups.length > 0 ? (
             startups.map((startup, index) => (
-              <button key={startup.id || index} onClick={() => handleProductClick(startup)} className="w-full text-left">
-                <StartupItem startup={startup} index={index} />
-              </button>
+              <div
+                key={startup.id || index}
+                onClick={() => handleProductClick(startup)}
+                className="w-full text-left cursor-pointer"
+              >
+                <StartupItem startup={startup} index={index} id={startup.id} />
+              </div>
             ))
           ) : (
             <div className="text-center py-8 text-gray-500">
@@ -224,7 +208,7 @@ export default function Products({ ActiveMonth }: { ActiveMonth: any }) {
         </div>
       </div>
 
-      {/* Featured Section */}
+      {/* Featured Section
       <div className="mb-16">
         <div className="flex items-center gap-3 mb-8">
           <h2 className="text-3xl font-bold text-gray-800">⭐ Featured This Week</h2>
@@ -243,7 +227,7 @@ export default function Products({ ActiveMonth }: { ActiveMonth: any }) {
       </div>
 
       {/* More Startups Section */}
-      <div className="mb-12">
+      {/* <div className="mb-12">
         <div className="flex items-center gap-3 mb-8">
           <h2 className="text-3xl font-bold text-gray-800">💎 More Discoveries</h2>
           <div className="h-1 flex-1 bg-gradient-to-r from-purple-400 to-transparent rounded-full"></div>
@@ -258,7 +242,7 @@ export default function Products({ ActiveMonth }: { ActiveMonth: any }) {
             ))}
           </div>
         </div>
-      </div>
+      </div> */} 
 
       {/* Footer CTA */}
       <div className="text-center py-12">

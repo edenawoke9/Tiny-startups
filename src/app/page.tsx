@@ -13,7 +13,7 @@ export default function Home() {
       <Header />
 
       <div className="flex pl-24 pr-24 pt-28 gap-10 h-screen justify-between bg-white w-full">
-        <div className="bg-[#fafafa] rounded-md p-6 w-fit flex flex-col min-w-0 text-black font-sans">
+        <div className=" rounded-md p-6 w-fit flex flex-col min-w-0 text-black font-sans">
           <div>
             <h1 className="text-3xl font-semibold">
               Welcome To{" "}

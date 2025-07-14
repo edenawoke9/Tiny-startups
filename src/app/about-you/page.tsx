@@ -6,6 +6,7 @@ import AboutYou from "@/components/profile/about-you"
 import Newsletter from "@/components/profile/newsletter"
 import FindFollowers from "@/components/profile/find-followers"
 
+
 export default function Component() {
   const [activeSection, setActiveSection] = useState("about")
 
@@ -23,7 +24,7 @@ export default function Component() {
   }
 
   return (
-    <div className="h-screen flex bg-gray-50 pt-16">
+    <div className="h-screen flex bg-gray-50 ">
       {/* Sidebar: fixed height and not scrollable */}
       <div className="w-[30%] pl-10 bg-white  h-full flex-shrink-0">
         <SidebarNavigation activeSection={activeSection} onSectionChange={setActiveSection} />
