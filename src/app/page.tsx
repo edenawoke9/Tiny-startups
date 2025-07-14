@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useRef } from "react"
-import { getYear, getISOWeeksInYear, setISOWeek, startOfISOWeek, endOfISOWeek, format } from "date-fns"
+import { getYear, getMonth, format, startOfMonth, endOfMonth } from "date-fns"
 import Products from "./products/products"
 import RightCom from "../components/rightCom"
 import Header from "@/components/navbar/nav"
@@ -25,7 +25,7 @@ export default function Home() {
           </div>
 
           <div className="border-t border-zinc-200 mt-4">
-            <WeekList />
+            <MonthList />
           </div>
         </div>
 
@@ -37,22 +37,23 @@ export default function Home() {
   )
 }
 
-export function WeekList() {
+export function MonthList() {
   const year = getYear(new Date())
-  const weeksInYear = getISOWeeksInYear(new Date())
-  const weeks = Array.from({ length: weeksInYear }, (_, i) => {
-    const weekNum = i + 1
-    const dateForWeek = setISOWeek(new Date(year, 0, 4), weekNum)
-    const startDate = startOfISOWeek(dateForWeek)
-    const endDate = endOfISOWeek(dateForWeek)
+  const months = Array.from({ length: 12 }, (_, i) => {
+    const monthNum = i
+    const dateForMonth = new Date(year, monthNum, 1)
+    const startDate = startOfMonth(dateForMonth)
+    const endDate = endOfMonth(dateForMonth)
+    const currentDate = new Date()
 
     return {
-      week: weekNum,
+      month: monthNum,
+      name: format(dateForMonth, "MMMM"),
       range: `${format(startDate, "MMM d")} - ${format(endDate, "MMM d")}`,
     }
   })
 
-  const [ActiveWeek, setWeek] = useState(weeks[1])
+  const [ActiveMonth, setMonth] = useState(months[getMonth(new Date())])
   const scrollContainer = useRef<HTMLDivElement>(null)
 
   const scroll = (direction: "left" | "right") => {
@@ -76,18 +77,18 @@ export function WeekList() {
           className="flex overflow-x-auto scroll-smooth items-center gap-x-4"
           style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
         >
-          {weeks.map((week) => (
+          {months.map((month) => (
             <div
-              key={week.week}
-              className={`flex-shrink-0 ${ActiveWeek.week === week.week ? "bg-green-100 rounded-lg" : ""}`}
+              key={month.month}
+              className={`flex-shrink-0 ${ActiveMonth.month === month.month ? "bg-green-100 rounded-lg" : ""}`}
             >
               <button
-                onClick={() => setWeek(week)}
+                onClick={() => setMonth(month)}
                 className={`whitespace-nowrap px-3 py-1.5 font-semibold transition-colors duration-200 ${
-                  ActiveWeek.week === week.week ? "text-green-700" : "text-gray-500 hover:text-gray-700"
+                  ActiveMonth.month === month.month ? "text-green-700" : "text-gray-500 hover:text-gray-700"
                 }`}
               >
-                Week {week.week}
+                {month.name}
               </button>
             </div>
           ))}
@@ -99,7 +100,7 @@ export function WeekList() {
           <MoveRight />
         </button>
       </div>
-      <Products ActiveWeek={ActiveWeek} />
+      <Products ActiveMonth={ActiveMonth} />
     </div>
   )
 }

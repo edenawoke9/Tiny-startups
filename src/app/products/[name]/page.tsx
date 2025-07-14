@@ -1,29 +1,128 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight, ThumbsUp, Share2 } from "lucide-react"
-import products from "@/lib/products.json"
+import { getProduct, getProductComments, createComment, upvoteProduct } from "@/lib/firestore"
+import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
+import { Product, Comment } from "@/lib/types"
 
 export default function ProductPage({ params }: { params: any }) {
   const [currentSlide, setCurrentSlide] = useState(0)
   const [commentText, setCommentText] = useState("")
+  const [product, setProduct] = useState<Product | null>(null)
+  const [comments, setComments] = useState<Comment[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [submittingComment, setSubmittingComment] = useState(false)
+  const [upvoting, setUpvoting] = useState(false)
 
-  const name = decodeURIComponent(params.name)
-  // Search all groups for the product
-  const allProducts = [...(products.startups || []), ...(products.moreStartups || []), ...(products.featured || [])]
-  const product = allProducts.find((p: any) => p.name && p.name.toLowerCase() === name.toLowerCase())
+  const { user } = useFirebaseAuth()
+  const productId = decodeURIComponent(params.name)
 
-  if (!product) {
+  useEffect(() => {
+    const fetchProductData = async () => {
+      try {
+        setLoading(true)
+        const [productData, commentsData] = await Promise.all([
+          getProduct(productId),
+          getProductComments(productId)
+        ])
+        
+        if (productData) {
+          setProduct(productData)
+          setComments(commentsData)
+        } else {
+          setError("Product not found")
+        }
+      } catch (err) {
+        console.error("Error fetching product:", err)
+        setError("Failed to load product")
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchProductData()
+  }, [productId])
+
+  const handleUpvote = async () => {
+    if (!user || !product) return;
+    
+    try {
+      setUpvoting(true)
+      await upvoteProduct(product.id!, user.uid)
+      
+      // Update local state
+      setProduct(prev => {
+        if (!prev) return prev;
+        const hasUpvoted = prev.upvotedBy.includes(user.uid)
+        return {
+          ...prev,
+          upvotes: hasUpvoted ? prev.upvotes - 1 : prev.upvotes + 1,
+          upvotedBy: hasUpvoted 
+            ? prev.upvotedBy.filter(id => id !== user.uid)
+            : [...prev.upvotedBy, user.uid]
+        }
+      })
+    } catch (err) {
+      console.error("Error upvoting:", err)
+    } finally {
+      setUpvoting(false)
+    }
+  }
+
+  const handleComment = async () => {
+    if (!user || !product || !commentText.trim()) return;
+    
+    try {
+      setSubmittingComment(true)
+      const commentId = await createComment({
+        text: commentText,
+        productId: product.id!
+      }, user.uid)
+      
+      // Add new comment to local state
+      const newComment: Comment = {
+        id: commentId,
+        productId: product.id!,
+        userId: user.uid,
+        text: commentText,
+        createdAt: new Date()
+      }
+      
+      setComments(prev => [...prev, newComment])
+      setCommentText("")
+      
+      // Update product's comment count
+      setProduct(prev => prev ? { ...prev, commentsCount: prev.commentsCount + 1 } : prev)
+    } catch (err) {
+      console.error("Error creating comment:", err)
+    } finally {
+      setSubmittingComment(false)
+    }
+  }
+
+  if (loading) {
     return (
-      <div className="p-8 text-center">
-        <h1 className="text-2xl font-bold mb-2">Product Not Found</h1>
-        <p>No product found for "{name}".</p>
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-500 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading product...</p>
+        </div>
       </div>
     )
   }
 
-  const hasIcon = (product as any).icon
-  const votes = (product as any)?.votes ?? 66
+  if (error || !product) {
+    return (
+      <div className="p-8 text-center">
+        <h1 className="text-2xl font-bold mb-2">Product Not Found</h1>
+        <p>No product found for "{productId}".</p>
+      </div>
+    )
+  }
+
+  const isUpvoted = user ? product.upvotedBy.includes(user.uid) : false
 
   // Sample carousel images
   const carouselImages = [
@@ -42,37 +141,6 @@ export default function ProductPage({ params }: { params: any }) {
     setCurrentSlide((prev) => (prev - 1 + carouselImages.length) % carouselImages.length)
   }
 
-  // Sample comments data
-  const comments = [
-    {
-      id: 1,
-      user: {
-        name: "Dan SRK",
-        avatar: "DS",
-        role: "Tech enthusiast consultant with a busine...",
-        color: "bg-teal-500",
-      },
-      content:
-        "Thanks for checking out inputeer! I built this out of pure frustration with repeating myself every time I started a new AI chat—explaining my project, business, or research background over and over. I wanted a way to upload everything once, get one clean brief, and start every chat with full context, not from zero.\n\nThe process wasn't easy—getting reliable PDF-to-text extraction and a clear, friendly workflow took a ton of iteration (and some tough lessons from early testers). But I'm genuinely proud of how simple the end result is: just upload your files, and you get a context doc you can use with any AI, instantly.\n\nI'd love to hear how you'd use this, any features you'd add (or cut), and your honest feedback. Appreciate your time and support!",
-      timestamp: "5h ago",
-      upvotes: 0,
-      hasUpvoted: false,
-    },
-    {
-      id: 2,
-      user: {
-        name: "Lantos Sar",
-        avatar: "L",
-        role: "indiehacker",
-        color: "bg-purple-500",
-      },
-      content: "Amazing, that's gonna help when using llms for docs",
-      timestamp: "5h ago",
-      upvotes: 0,
-      hasUpvoted: false,
-    },
-  ]
-
   return (
     <div className="bg-gray-50 min-h-screen">
       <div className="flex flex-col lg:flex-row gap-8 p-6 max-w-7xl mx-auto">
@@ -81,26 +149,46 @@ export default function ProductPage({ params }: { params: any }) {
           {/* Header */}
           <div className="p-6 border-b">
             <div className="flex items-start gap-4">
-              {hasIcon && (
-                <div className="w-16 h-16 bg-black rounded-xl flex items-center justify-center text-white text-2xl font-bold">
-                  sp
-                </div>
-              )}
+              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-pink-500 rounded-xl flex items-center justify-center text-white text-2xl font-bold">
+                {product.name.charAt(0).toUpperCase()}
+              </div>
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-gray-900 mb-1">{product.name}</h1>
-                <p className="text-gray-600 mb-3">{product.desc}</p>
-                <div className="text-sm text-gray-500">0 reviews</div>
+                <p className="text-gray-600 mb-3">{product.description}</p>
+                <div className="text-sm text-gray-500">{product.commentsCount} reviews</div>
               </div>
-              <button className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-gray-700 font-medium transition-colors">
-                Visit website
-              </button>
+              <div className="flex flex-col gap-2">
+                <button 
+                  onClick={() => window.open(product.url, '_blank')}
+                  className="bg-gray-100 hover:bg-gray-200 px-4 py-2 rounded-lg text-gray-700 font-medium transition-colors"
+                >
+                  Visit website
+                </button>
+                <button 
+                  onClick={handleUpvote}
+                  disabled={upvoting || !user}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
+                    isUpvoted 
+                      ? 'bg-orange-100 text-orange-700 hover:bg-orange-200' 
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  <ThumbsUp className="w-4 h-4" />
+                  {product.upvotes}
+                </button>
+              </div>
             </div>
             <div className="mt-4">
               <p className="text-gray-700 text-sm leading-relaxed">
-                Socialprofiler helps you quickly and clearly understand who you're really dealing with online and
-                offline. Whether you're dating someone new, hiring help at home, concerned about your kid's safety, or
-                just curious—Socialprofiler gives instant insights.
+                {product.description}
               </p>
+              <div className="flex gap-2 mt-3">
+                {product.tags.map((tag, index) => (
+                  <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
+                    {tag}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
@@ -156,115 +244,67 @@ export default function ProductPage({ params }: { params: any }) {
             <div className="mb-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">What do you think? ...</h3>
 
-              {/* Comment Input */}
-              <div className="flex gap-3 mb-6">
-                <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-gray-600 text-sm font-medium">
-                  @
-                </div>
-                <div className="flex-1">
-                  <textarea
-                    value={commentText}
-                    onChange={(e) => setCommentText(e.target.value)}
-                    placeholder="Share your thoughts..."
-                    className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                    rows={3}
-                  />
-                  <div className="flex justify-end mt-2">
-                    <button className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors">
-                      Comment
-                    </button>
+              {user ? (
+                /* Comment Input */
+                <div className="flex gap-3 mb-6">
+                  <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                    {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                  </div>
+                  <div className="flex-1">
+                    <textarea
+                      value={commentText}
+                      onChange={(e) => setCommentText(e.target.value)}
+                      placeholder="Share your thoughts..."
+                      className="w-full p-3 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      rows={3}
+                    />
+                    <div className="flex justify-end mt-2">
+                      <button 
+                        onClick={handleComment}
+                        disabled={submittingComment || !commentText.trim()}
+                        className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-lg font-medium transition-colors"
+                      >
+                        {submittingComment ? 'Posting...' : 'Comment'}
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="text-center py-4 text-gray-500">
+                  Please sign in to leave a comment
+                </div>
+              )}
             </div>
 
             {/* Comments List */}
             <div className="space-y-6">
               {comments.map((comment) => (
                 <div key={comment.id} className="flex gap-3">
-                  <div
-                    className={`w-10 h-10 ${comment.user.color} rounded-full flex items-center justify-center text-white font-medium text-sm`}
-                  >
-                    {comment.user.avatar}
+                  <div className="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
+                    {comment.userId.charAt(0).toUpperCase()}
                   </div>
                   <div className="flex-1">
                     <div className="mb-2">
-                      <span className="font-medium text-gray-900">{comment.user.name}</span>
-                      <span className="text-gray-500 text-sm ml-2">{comment.user.role}</span>
+                      <span className="font-medium text-gray-900">User {comment.userId.slice(-4)}</span>
+                      <span className="text-gray-500 text-sm ml-2">
+                        {new Date(comment.createdAt).toLocaleDateString()}
+                      </span>
                     </div>
                     <div className="text-gray-700 text-sm leading-relaxed mb-3 whitespace-pre-line">
-                      {comment.content}
-                    </div>
-                    <div className="flex items-center gap-4 text-sm">
-                      <button className="flex items-center gap-1 text-gray-500 hover:text-red-500 transition-colors">
-                        <span className="text-red-500">No need for</span>
-                        <ThumbsUp className="w-4 h-4" />
-                        <span>upvote</span>
-                      </button>
-                      <button className="text-gray-500 hover:text-gray-700 transition-colors">Reply</button>
-                      <span className="text-gray-400">{comment.timestamp}</span>
+                      {comment.text}
                     </div>
                   </div>
                 </div>
               ))}
+              
+              {comments.length === 0 && (
+                <div className="text-center py-8 text-gray-500">
+                  No comments yet. Be the first to share your thoughts!
+                </div>
+              )}
             </div>
           </div>
         </div>
-
-        {/* Sidebar */}
-        <aside className="w-full lg:w-80 flex-shrink-0 space-y-6">
-          {/* Voting Card */}
-          <div className="bg-white rounded-lg shadow-sm p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className="text-3xl font-bold text-gray-900">{votes}</div>
-              <div className="text-sm text-gray-500">Upvotes</div>
-            </div>
-            <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg mb-3 transition-colors flex items-center justify-center gap-2">
-              <ThumbsUp className="w-4 h-4" />
-              Upvote
-            </button>
-            <button className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-2 px-4 rounded-lg mb-4 transition-colors flex items-center justify-center gap-2">
-              <Share2 className="w-4 h-4" />
-              Share
-            </button>
-
-            <div className="border-t pt-4">
-              <div className="text-xs text-gray-500 mb-3">Added by</div>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center text-gray-600 font-medium text-sm">
-                  M
-                </div>
-                <div>
-                  <div className="font-medium text-gray-900 text-sm">Miro Cichy</div>
-                  <div className="text-xs text-gray-500">Creator</div>
-                </div>
-              </div>
-            </div>
-
-            <div className="border-t pt-4 mt-4">
-              <div className="text-sm font-medium text-gray-900 mb-2">Social Links</div>
-              <a href="#" className="text-gray-900 hover:text-blue-600 transition-colors text-lg">
-                𝕏
-              </a>
-            </div>
-          </div>
-
-          {/* Newsletter Signup */}
-          <div className="bg-blue-600 rounded-lg p-6 text-white">
-            <div className="text-center mb-4">
-              <div className="text-sm font-medium mb-1">⭐ Trending products & news</div>
-              <div className="text-sm mb-1">⭐ The FREE weekly report</div>
-              <div className="text-sm">⭐ Curated by a human</div>
-            </div>
-            <div className="flex gap-2">
-              <input type="email" placeholder="Your email" className="flex-1 px-3 py-2 rounded text-gray-900 text-sm" />
-              <button className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded font-medium text-sm transition-colors">
-                Subscribe
-              </button>
-            </div>
-            <div className="text-center text-xs mt-3 opacity-90">Join 17,800+ subscribed experts</div>
-          </div>
-        </aside>
       </div>
     </div>
   )
