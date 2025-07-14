@@ -27,9 +27,7 @@ export const commentsCollection = collection(db, 'comments');
 // ===== PRODUCTS =====
 
 export const createProduct = async (productData: CreateProductInput, userId: string): Promise<string> => {
-  console.log("=== FIRESTORE createProduct DEBUG ===")
-  console.log("Input productData:", productData)
-  console.log("Input userId:", userId)
+ 
   
   const product: Omit<Product, 'id'> = {
     ...productData,
@@ -40,8 +38,7 @@ export const createProduct = async (productData: CreateProductInput, userId: str
     commentsCount: 0,
   };
 
-  console.log("Constructed product object:", product)
-  console.log("🚀 Adding document to products collection...")
+  
 
   try {
     const docRef = await addDoc(productsCollection, product);

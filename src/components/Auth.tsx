@@ -7,6 +7,7 @@ import { ModalView } from "./Modal";
 import Link from "next/link";
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth";
 
+
 function Auth() {
   const [clicked, setClicked] = useState(false);
   const {
@@ -17,19 +18,20 @@ function Auth() {
     signInWithGithub,
     signOut,
   } = useFirebaseAuth();
+  const names=user?.displayName?.split(" ")
 
   return (
     <div className="flex flex-col items-center gap-4">
       <button
         onClick={() => setClicked((prev) => !prev)}
-        className="bg-gradient-to-r from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 px-5 py-2.5 rounded-xl font-medium text-gray-700 hover:text-gray-800 transition-all duration-300 shadow-sm hover:shadow-md"
+        className="bg-gradient-to-r relative from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 px-5 py-2.5 rounded-xl font-medium text-gray-700 hover:text-gray-800 transition-all duration-300 shadow-sm hover:shadow-md"
       >
-        {user ? user.displayName || user.email : "Sign Up"}
+        {names && names[0] ? names[0] : "Sign Up"}
       </button>
 
       {/* Dropdown */}
       {clicked && (
-        <div>
+        <div className="absolute right-0 top-full">
           {!user ? (
             <>
               <ModalView setClicked={setClicked} clicked={clicked}>
@@ -71,8 +73,10 @@ function Auth() {
               </ModalView>
             </>
           ) : (
-            <div className="flex flex-col items-center gap-2 p-4">
-              <div className="font-semibold">{user.displayName || user.email}</div>
+            <div className="flex  bg-white  text-black shadow-lg z-40 flex-col  gap-3 rounded-b-sm pl-6 pr-10 p-4">
+             
+              <div className="font-semibold">{names && names[0] }</div>
+              <Link href="/about-you">Profile</Link>
               <button
                 onClick={signOut}
                 className="bg-red-100 hover:bg-red-200 px-5 py-2.5 rounded-xl font-medium text-red-700 hover:text-red-800 transition-all duration-300 shadow-sm hover:shadow-md"

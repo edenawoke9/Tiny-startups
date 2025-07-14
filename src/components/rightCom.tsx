@@ -1,4 +1,5 @@
 import { Star } from "lucide-react";
+import Link from "next/link";
 
 const featuredItems = [
     {
@@ -38,7 +39,13 @@ export default function RightCom(){
     <p className="text-sm text-center text-zinc-500">
         share what you'r working on and get featured in-front of 17k founders.
     </p>
-    <div className="  text-black bg-gradient-to-r from-[#e14eca] to-[#3b82f6] p-[2px]  rounded-2xl"><button className="bg-white rounded-2xl  w-full">New Launch</button> </div>
+    <div className="text-black bg-gradient-to-r from-[#e14eca] to-[#3b82f6] p-[2px] animated-button1 rounded-2xl relative overflow-hidden">
+  <button  className="bg-white rounded-xl w-full relative z-10"><Link href="/submit-product">New Launch</Link></button >
+  <span />
+  <span />
+  <span />
+  <span />
+</div>
     
 
 </div>

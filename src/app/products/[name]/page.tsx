@@ -5,6 +5,8 @@ import { ChevronLeft, ChevronRight, ThumbsUp, Share2 } from "lucide-react"
 import { getProduct, getProductComments, createComment, upvoteProduct } from "@/lib/firestore"
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
 import { Product, Comment } from "@/lib/types"
+import React from "react"
+
 
 export default function ProductPage({ params }: { params: any }) {
   const [currentSlide, setCurrentSlide] = useState(0)
@@ -17,7 +19,8 @@ export default function ProductPage({ params }: { params: any }) {
   const [upvoting, setUpvoting] = useState(false)
 
   const { user } = useFirebaseAuth()
-  const productId = decodeURIComponent(params.name)
+  const { name }=React.use(params) as {name: string}
+  const productId = decodeURIComponent(name)
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -30,6 +33,7 @@ export default function ProductPage({ params }: { params: any }) {
         
         if (productData) {
           setProduct(productData)
+          
           setComments(commentsData)
         } else {
           setError("Product not found")

@@ -1,6 +1,8 @@
 "use client"
 
 import { User, Mail, Users } from "lucide-react"
+import { useRouter } from "next/navigation"
+import { ArrowLeftCircle } from "lucide-react"
 
 interface SidebarNavigationProps {
   activeSection: string
@@ -8,6 +10,7 @@ interface SidebarNavigationProps {
 }
 
 export default function SidebarNavigation({ activeSection, onSectionChange }: SidebarNavigationProps) {
+  const router=useRouter()
   const navigationItems = [
     {
       id: "about",
@@ -28,6 +31,9 @@ export default function SidebarNavigation({ activeSection, onSectionChange }: Si
 
   return (
     <div className="w-full h-screen bg-white pt-10">
+      <button onClick={()=>{router.push("/")}}>
+        <ArrowLeftCircle/>
+      </button>
       <div className="p-6">
         <nav className="space-y-2">
           {navigationItems.map((item) => {
