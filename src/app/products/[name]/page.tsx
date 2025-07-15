@@ -2,10 +2,22 @@
 
 import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight, ThumbsUp, Share2 } from "lucide-react"
-import { getProduct, getProductComments, createComment, upvoteProduct } from "@/lib/firestore"
+import { getProduct, getProductComments, createComment, upvoteProduct,getUser} from "@/lib/firestore"
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
 import { Product, Comment } from "@/lib/types"
 import React from "react"
+import { CircleChevronUp } from "lucide-react"
+
+function UserName({ id }: { id: string }) {
+  console.log("id is ",id)
+  const [name, setName] = useState<string>("...");
+
+  useEffect(() => {
+    getUser(id).then(user => {setName(user?.name || "Unknown"); console.log(user)});
+  }, [id]);
+
+  return <p>{name}</p>;
+}
 
 
 export default function ProductPage({ params }: { params: any }) {
@@ -144,10 +156,11 @@ export default function ProductPage({ params }: { params: any }) {
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + carouselImages.length) % carouselImages.length)
   }
+ 
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="flex flex-col lg:flex-row gap-8 p-6 max-w-7xl mx-auto">
+    <div className="bg-gray-50 min-h-screen ">
+      <div className="flex flex-col lg:flex-row gap-8 p-6 max-w-7xl mx-auto pt-24">
         {/* Main Content */}
         <div className="flex-1 bg-white rounded-lg shadow-sm">
           {/* Header */}
@@ -177,7 +190,7 @@ export default function ProductPage({ params }: { params: any }) {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  <ThumbsUp className="w-4 h-4" />
+                  <CircleChevronUp className="w-5 h-5" />
                   {product.upvotes}
                 </button>
               </div>
@@ -285,11 +298,11 @@ export default function ProductPage({ params }: { params: any }) {
               {comments.map((comment) => (
                 <div key={comment.id} className="flex gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                    {comment.userId.charAt(0).toUpperCase()}
+                    <UserName id={comment.userId} />
                   </div>
                   <div className="flex-1">
                     <div className="mb-2">
-                      <span className="font-medium text-gray-900">User {comment.userId.slice(-4)}</span>
+                      <span className="font-medium text-gray-900"> <UserName id={comment.userId} /></span>
                       <span className="text-gray-500 text-sm ml-2">
                         {new Date(comment.createdAt).toLocaleDateString()}
                       </span>

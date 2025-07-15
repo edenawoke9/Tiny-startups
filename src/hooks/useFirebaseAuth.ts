@@ -8,7 +8,7 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
 } from 'firebase/auth';
-import { createUser, getUser, updateUser } from '@/lib/firestore';
+import { createUser, getUser, updateUser, ensureUserDocument } from '@/lib/firestore';
 
 export function useFirebaseAuth() {
   const [user, setUser] = useState<FirebaseUser | null>(null);
@@ -21,29 +21,11 @@ export function useFirebaseAuth() {
       setUser(firebaseUser);
       
       if (firebaseUser) {
-        // Create or update user record in Firestore
+        // Ensure user document exists in Firestore
         try {
-          const existingUser = await getUser(firebaseUser.uid);
-          
-          if (!existingUser) {
-            // Create new user record
-            await createUser({
-              name: firebaseUser.displayName || 'Anonymous',
-              email: firebaseUser.email || '',
-              profilePic: firebaseUser.photoURL || '',
-            });
-            console.log('New user created in Firestore');
-          } else {
-            // Update existing user record with latest info
-            await updateUser(firebaseUser.uid, {
-              name: firebaseUser.displayName || existingUser.name,
-              email: firebaseUser.email || existingUser.email,
-              profilePic: firebaseUser.photoURL || existingUser.profilePic,
-            });
-            console.log('User updated in Firestore');
-          }
+          await ensureUserDocument(firebaseUser);
         } catch (err) {
-          console.error('Error managing user record:', err);
+          console.error('Error ensuring user document:', err);
         }
       }
       
