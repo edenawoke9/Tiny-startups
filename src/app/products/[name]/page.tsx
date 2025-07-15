@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight, ThumbsUp, Share2 } from "lucide-react"
-import { getProduct, getProductComments, createComment, upvoteProduct,getUser} from "@/lib/firestore"
+import { MoreHorizontal } from "lucide-react"
+import { getProduct, getProductComments, createComment, upvoteProduct,getUser, deleteComment } from "@/lib/firestore"
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
 import { Product, Comment } from "@/lib/types"
 import React from "react"
@@ -29,6 +30,9 @@ export default function ProductPage({ params }: { params: any }) {
   const [error, setError] = useState<string | null>(null)
   const [submittingComment, setSubmittingComment] = useState(false)
   const [upvoting, setUpvoting] = useState(false)
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editText, setEditText] = useState<string>("");
+  const [showMenu, setShowMenu] = useState<string | null>(null);
 
   const { user } = useFirebaseAuth()
   const { name }=React.use(params) as {name: string}
@@ -117,6 +121,33 @@ export default function ProductPage({ params }: { params: any }) {
       setSubmittingComment(false)
     }
   }
+
+  const handleDeleteComment = async (commentId: string) => {
+    if (!user) return;
+    try {
+      // Optimistically remove comment from UI
+      setComments(prev => prev.filter(c => c.id !== commentId));
+      // Call Firestore delete
+      await deleteComment(commentId, user.uid);
+      // Optionally update product's comment count
+      setProduct(prev => prev ? { ...prev, commentsCount: prev.commentsCount - 1 } : prev);
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+    }
+  };
+
+  const handleEditComment = (comment: Comment) => {
+    setEditingCommentId(comment.id!);
+    setEditText(comment.text);
+    setShowMenu(null);
+  };
+
+  const handleSaveEdit = async (commentId: string) => {
+    // Placeholder: implement Firestore update if needed
+    setComments(prev => prev.map(c => c.id === commentId ? { ...c, text: editText } : c));
+    setEditingCommentId(null);
+    setEditText("");
+  };
 
   if (loading) {
     return (
@@ -301,14 +332,52 @@ export default function ProductPage({ params }: { params: any }) {
                     <UserName id={comment.userId} />
                   </div>
                   <div className="flex-1">
-                    <div className="mb-2">
+                    <div className="mb-2 flex items-center justify-between">
                       <span className="font-medium text-gray-900"> <UserName id={comment.userId} /></span>
-                      <span className="text-gray-500 text-sm ml-2">
-                        {new Date(comment.createdAt).toLocaleDateString()}
-                      </span>
+                      {user && user.uid === comment.userId && (
+                        <div className="relative inline-block text-left ml-2">
+                          <button
+                            className="p-1 rounded-full hover:bg-gray-200"
+                            aria-label="Comment actions"
+                            onClick={() => setShowMenu(showMenu === comment.id ? null : (comment.id || null))}
+                          >
+                            <MoreHorizontal className="w-5 h-5" />
+                          </button>
+                          {showMenu === comment.id && (
+                            <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg z-10">
+                              <button
+                                className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                                onClick={() => handleEditComment(comment)}
+                              >Edit</button>
+                              <button
+                                className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
+                                onClick={() => handleDeleteComment(comment.id || "")}
+                              >Delete</button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div className="text-gray-700 text-sm leading-relaxed mb-3 whitespace-pre-line">
-                      {comment.text}
+                      {editingCommentId === comment.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            className="flex-1 border rounded px-2 py-1"
+                            value={editText}
+                            onChange={e => setEditText(e.target.value)}
+                          />
+                          <button
+                            className="px-2 py-1 bg-blue-500 text-white rounded"
+                            onClick={() => handleSaveEdit(comment.id || "")}
+                          >Save</button>
+                          <button
+                            className="px-2 py-1 bg-gray-300 text-black rounded"
+                            onClick={() => setEditingCommentId(null)}
+                          >Cancel</button>
+                        </div>
+                      ) : (
+                        comment.text
+                      )}
                     </div>
                   </div>
                 </div>

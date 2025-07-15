@@ -11,24 +11,26 @@ import {
 import { createUser, getUser, updateUser, ensureUserDocument } from '@/lib/firestore';
 
 export function useFirebaseAuth() {
-  const [user, setUser] = useState<FirebaseUser | null>(null);
+  const [user, setUser] = useState<any | null>(null); // allow merged user
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      console.log('Auth state changed:', firebaseUser);
-      setUser(firebaseUser);
-      
+   
       if (firebaseUser) {
         // Ensure user document exists in Firestore
         try {
           await ensureUserDocument(firebaseUser);
+          const dbUser = await getUser(firebaseUser.uid);
+          setUser({ ...firebaseUser, ...dbUser });
         } catch (err) {
           console.error('Error ensuring user document:', err);
+          setUser(firebaseUser);
         }
+      } else {
+        setUser(null);
       }
-      
       setLoading(false);
     });
     return () => unsubscribe();

@@ -6,6 +6,7 @@ import { faGoogle, faGithub } from "@fortawesome/free-brands-svg-icons";
 import { ModalView } from "./Modal";
 import Link from "next/link";
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth";
+import Image from "next/image";
 
 
 function Auth() {
@@ -24,9 +25,21 @@ function Auth() {
     <div className="flex flex-col items-center gap-4">
       <button
         onClick={() => setClicked((prev) => !prev)}
-        className="bg-gradient-to-r relative from-gray-100 to-gray-200 hover:from-gray-200 hover:to-gray-300 px-5 py-2.5 rounded-xl font-medium text-gray-700 hover:text-gray-800 transition-all duration-300 shadow-sm hover:shadow-md"
+        className="relative rounded-xl font-medium text-gray-700 hover:text-gray-800 transition-all duration-300 shadow-sm hover:shadow-md"
       >
-        {names && names[0] ? names[0] : "Sign Up"}
+        {user ? (
+          <span>
+            <Image
+              src={user.profilePic || "/logo.jpg"}
+              alt="Profile"
+              width={32}
+              height={32}
+              className="object-cover w-8 h-8 rounded-full"
+            />
+          </span>
+        ) : (
+          "Sign Up"
+        )}
       </button>
 
       {/* Dropdown */}
