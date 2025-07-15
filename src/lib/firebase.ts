@@ -13,11 +13,7 @@ const firebaseConfig = {
 };
 
 // Debug: Log config (without sensitive data)
-console.log('Firebase config loaded:', {
-  authDomain: firebaseConfig.authDomain,
-  projectId: firebaseConfig.projectId,
-  hasApiKey: !!firebaseConfig.apiKey,
-});
+
 
 // Validate required config
 if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
@@ -32,9 +28,6 @@ const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-console.log('Firebase initialized successfully:', {
-  authDomain: auth.config.authDomain,
-  projectId: firebaseConfig.projectId,
-});
+
 
 export { app, auth, db }; 

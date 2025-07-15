@@ -1,20 +1,23 @@
 "use client"
 
 import type React from "react"
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef, useCallback, useEffect } from "react"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { CardContent,Card } from "../ui/card"
 import { User, Info, Upload, X, Camera, Linkedin, Twitter } from "lucide-react"
+import { updateUser } from '@/lib/firestore';
+import { useFirebaseAuth } from '@/hooks/useFirebaseAuth';
 
 
 export  default function AboutYou() {
    
+  const { user } = useFirebaseAuth();
     
   const [formData, setFormData] = useState({
-    name: "Jone smith",
-    username: "jone_smith",
-    email: "jonesmith@gmail.com",
+    name: "",
+    username: "",
+    email: "",
     linkedin: "",
     xcom: "",
     headline: "",
@@ -25,6 +28,21 @@ export  default function AboutYou() {
   const [isDragging, setIsDragging] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+
+  // Prefill form fields from user on mount or when user changes
+  useEffect(() => {
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        username: user.username || "",
+        email: user.email || "",
+        linkedin: user.linkedin || "",
+        xcom: user.xcom || "",
+        headline: user.headline || "",
+      });
+      if (user.profilePic) setProfileImage(user.profilePic);
+    }
+  }, [user]);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -45,22 +63,35 @@ export  default function AboutYou() {
     return null
   }
 
-  const handleImageUpload = useCallback((file: File) => {
+  const uploadToCloudinary = async (file: File): Promise<string | null> => {
+    const url = `https://api.cloudinary.com/v1_1/dinhnncvj/upload`;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "unsigned");
+    const res = await fetch(url, {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+    return data.secure_url || null;
+  };
+
+  const handleImageUpload = useCallback(async (file: File) => {
     setUploadError(null)
     const error = validateImage(file)
     if (error) {
       setUploadError(error)
       return
     }
-
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      if (e.target?.result) {
-        setProfileImage(e.target.result as string)
-      }
+    // Upload to Cloudinary
+    const cloudUrl = await uploadToCloudinary(file)
+    if (cloudUrl && user) {
+      await updateUser(user.uid, { profilePic: cloudUrl })
+      setProfileImage(cloudUrl)
+    } else {
+      setUploadError("Failed to upload image to Cloudinary")
     }
-    reader.readAsDataURL(file)
-  }, [])
+  }, [user])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -100,11 +131,18 @@ export  default function AboutYou() {
     fileInputRef.current?.click()
   }
  
+  // Save handler for all fields
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!user) return;
+    await updateUser(user.uid, { ...formData });
+    // Optionally, show a success message or refetch user
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
       {/* Header Section */}
-      <div className="relative bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500 pt-16 pb-32">
+      <div className="relative bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500  pb-32">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative max-w-4xl mx-auto px-6">
           <div className="text-center">
@@ -138,7 +176,7 @@ export  default function AboutYou() {
                   {profileImage ? (
                     <>
                       <img
-                        src={profileImage || "/placeholder.svg"}
+                        src={profileImage || "/logo.jpg"}
                         alt="Profile"
                         className="w-full h-full object-cover"
                       />
@@ -312,7 +350,7 @@ export  default function AboutYou() {
                   <p className="text-xs text-gray-500">
                     Write a brief description that captures who you are professionally
                   </p>
-                  <button type="submit" className="p-2 pl-6 pr-6 border  border-purple-500 rounded-xl">
+                  <button type="submit" className="p-2 pl-6 pr-6 border  border-purple-500 rounded-xl" onClick={handleSave}>
                     Save
                   </button>
                 </div>

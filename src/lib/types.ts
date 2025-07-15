@@ -10,6 +10,7 @@ export interface Product {
   upvotedBy: string[];
   commentsCount: number;
   tags: string[];
+  month?: string; // Added month field
 }
 
 // User interface

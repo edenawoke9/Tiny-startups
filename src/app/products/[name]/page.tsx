@@ -2,10 +2,23 @@
 
 import { useState, useEffect } from "react"
 import { ChevronLeft, ChevronRight, ThumbsUp, Share2 } from "lucide-react"
-import { getProduct, getProductComments, createComment, upvoteProduct } from "@/lib/firestore"
+import { MoreHorizontal } from "lucide-react"
+import { getProduct, getProductComments, createComment, upvoteProduct,getUser, deleteComment } from "@/lib/firestore"
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
 import { Product, Comment } from "@/lib/types"
 import React from "react"
+import { CircleChevronUp } from "lucide-react"
+
+function UserName({ id }: { id: string }) {
+  console.log("id is ",id)
+  const [name, setName] = useState<string>("...");
+
+  useEffect(() => {
+    getUser(id).then(user => {setName(user?.name || "Unknown"); console.log(user)});
+  }, [id]);
+
+  return <p>{name}</p>;
+}
 
 
 export default function ProductPage({ params }: { params: any }) {
@@ -17,6 +30,9 @@ export default function ProductPage({ params }: { params: any }) {
   const [error, setError] = useState<string | null>(null)
   const [submittingComment, setSubmittingComment] = useState(false)
   const [upvoting, setUpvoting] = useState(false)
+  const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
+  const [editText, setEditText] = useState<string>("");
+  const [showMenu, setShowMenu] = useState<string | null>(null);
 
   const { user } = useFirebaseAuth()
   const { name }=React.use(params) as {name: string}
@@ -106,6 +122,33 @@ export default function ProductPage({ params }: { params: any }) {
     }
   }
 
+  const handleDeleteComment = async (commentId: string) => {
+    if (!user) return;
+    try {
+      // Optimistically remove comment from UI
+      setComments(prev => prev.filter(c => c.id !== commentId));
+      // Call Firestore delete
+      await deleteComment(commentId, user.uid);
+      // Optionally update product's comment count
+      setProduct(prev => prev ? { ...prev, commentsCount: prev.commentsCount - 1 } : prev);
+    } catch (err) {
+      console.error("Error deleting comment:", err);
+    }
+  };
+
+  const handleEditComment = (comment: Comment) => {
+    setEditingCommentId(comment.id!);
+    setEditText(comment.text);
+    setShowMenu(null);
+  };
+
+  const handleSaveEdit = async (commentId: string) => {
+    // Placeholder: implement Firestore update if needed
+    setComments(prev => prev.map(c => c.id === commentId ? { ...c, text: editText } : c));
+    setEditingCommentId(null);
+    setEditText("");
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -144,10 +187,11 @@ export default function ProductPage({ params }: { params: any }) {
   const prevSlide = () => {
     setCurrentSlide((prev) => (prev - 1 + carouselImages.length) % carouselImages.length)
   }
+ 
 
   return (
-    <div className="bg-gray-50 min-h-screen">
-      <div className="flex flex-col lg:flex-row gap-8 p-6 max-w-7xl mx-auto">
+    <div className="bg-gray-50 min-h-screen ">
+      <div className="flex flex-col lg:flex-row gap-8 p-6 max-w-7xl mx-auto pt-24">
         {/* Main Content */}
         <div className="flex-1 bg-white rounded-lg shadow-sm">
           {/* Header */}
@@ -177,7 +221,7 @@ export default function ProductPage({ params }: { params: any }) {
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
                 >
-                  <ThumbsUp className="w-4 h-4" />
+                  <CircleChevronUp className="w-5 h-5" />
                   {product.upvotes}
                 </button>
               </div>
@@ -285,17 +329,55 @@ export default function ProductPage({ params }: { params: any }) {
               {comments.map((comment) => (
                 <div key={comment.id} className="flex gap-3">
                   <div className="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                    {comment.userId.charAt(0).toUpperCase()}
+                    <UserName id={comment.userId} />
                   </div>
                   <div className="flex-1">
-                    <div className="mb-2">
-                      <span className="font-medium text-gray-900">User {comment.userId.slice(-4)}</span>
-                      <span className="text-gray-500 text-sm ml-2">
-                        {new Date(comment.createdAt).toLocaleDateString()}
-                      </span>
+                    <div className="mb-2 flex items-center justify-between">
+                      <span className="font-medium text-gray-900"> <UserName id={comment.userId} /></span>
+                      {user && user.uid === comment.userId && (
+                        <div className="relative inline-block text-left ml-2">
+                          <button
+                            className="p-1 rounded-full hover:bg-gray-200"
+                            aria-label="Comment actions"
+                            onClick={() => setShowMenu(showMenu === comment.id ? null : (comment.id || null))}
+                          >
+                            <MoreHorizontal className="w-5 h-5" />
+                          </button>
+                          {showMenu === comment.id && (
+                            <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg z-10">
+                              <button
+                                className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                                onClick={() => handleEditComment(comment)}
+                              >Edit</button>
+                              <button
+                                className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
+                                onClick={() => handleDeleteComment(comment.id || "")}
+                              >Delete</button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     <div className="text-gray-700 text-sm leading-relaxed mb-3 whitespace-pre-line">
-                      {comment.text}
+                      {editingCommentId === comment.id ? (
+                        <div className="flex items-center gap-2">
+                          <input
+                            className="flex-1 border rounded px-2 py-1"
+                            value={editText}
+                            onChange={e => setEditText(e.target.value)}
+                          />
+                          <button
+                            className="px-2 py-1 bg-blue-500 text-white rounded"
+                            onClick={() => handleSaveEdit(comment.id || "")}
+                          >Save</button>
+                          <button
+                            className="px-2 py-1 bg-gray-300 text-black rounded"
+                            onClick={() => setEditingCommentId(null)}
+                          >Cancel</button>
+                        </div>
+                      ) : (
+                        comment.text
+                      )}
                     </div>
                   </div>
                 </div>

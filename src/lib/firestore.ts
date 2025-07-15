@@ -14,10 +14,12 @@ import {
   increment,
   arrayUnion,
   arrayRemove,
-  Timestamp
+  Timestamp,
+  setDoc
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Product, User, Comment, CreateProductInput, CreateCommentInput } from './types';
+import { getAuth } from "firebase/auth";
 
 // Collection references
 export const productsCollection = collection(db, 'products');
@@ -28,7 +30,10 @@ export const commentsCollection = collection(db, 'comments');
 
 export const createProduct = async (productData: CreateProductInput, userId: string): Promise<string> => {
  
-  
+  // Get current month in 'YYYY-MM' format
+  const now = new Date();
+  const month = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+
   const product: Omit<Product, 'id'> = {
     ...productData,
     userId,
@@ -36,6 +41,7 @@ export const createProduct = async (productData: CreateProductInput, userId: str
     upvotes: 0,
     upvotedBy: [],
     commentsCount: 0,
+    month, // Add month field
   };
 
   
@@ -214,6 +220,20 @@ export const updateUser = async (userId: string, updates: Partial<User>): Promis
   const userRef = doc(usersCollection, userId);
   await updateDoc(userRef, updates);
 };
+
+export async function ensureUserDocument(user: any) {
+  const userRef = doc(usersCollection, user.uid);
+  const userSnap = await getDoc(userRef);
+  if (!userSnap.exists()) {
+    await setDoc(userRef, {
+      name: user.displayName || user.email || "Anonymous",
+      email: user.email,
+      profilePic: user.photoURL || "",
+      joinedAt: new Date(),
+      productsSubmitted: 0,
+    });
+  }
+}
 
 // ===== COMMENTS =====
 
