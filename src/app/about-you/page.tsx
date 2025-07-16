@@ -24,9 +24,9 @@ export default function Component() {
   }
 
   return (
-    <div className="h-screen flex bg-gray-50 ">
+    <div className="h-screen flex pt-16 bg-gray-50 ">
       {/* Sidebar: fixed height and not scrollable */}
-      <div className="w-[30%] pl-10 bg-white  h-full flex-shrink-0">
+      <div className="w-[30%] pl-10 bg-white   h-full flex-shrink-0">
         <SidebarNavigation activeSection={activeSection} onSectionChange={setActiveSection} />
       </div>
 
