@@ -9,7 +9,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle, AlertCircle } from "lucide-react"
+import { CheckCircle, AlertCircle, MoreHorizontal } from "lucide-react"
 
 export default function SubmitProduct() {
   const [formData, setFormData] = useState<CreateProductInput>({
@@ -137,7 +137,7 @@ export default function SubmitProduct() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12">
+    <div className="min-h-screen pt-28 bg-gray-50 py-12">
       <div className="max-w-2xl mx-auto px-6">
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-8">
           <div className="text-center mb-8">
