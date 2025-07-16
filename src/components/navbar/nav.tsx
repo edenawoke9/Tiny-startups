@@ -50,7 +50,7 @@ export default function Header() {
         <div className="flex items-center gap-8">
           <nav className="flex gap-2 ">
             <Link
-              href="/launches"
+              href="/myProducts"
               className={`
                 relative px-4 py-2 rounded-xl font-medium transition-all duration-200
                 hover:bg-gray-100 
@@ -61,7 +61,7 @@ export default function Header() {
               `}
               style={{ overflow: "hidden" }}
             >
-              Launches
+              My Products
              
             </Link>
             

@@ -140,9 +140,9 @@ export  default function AboutYou() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
+    <div className="min-h-screen bg-gradient-to-br  from-slate-50 to-blue-50">
       {/* Header Section */}
-      <div className="relative bg-gradient-to-r from-purple-600 via-pink-500 to-blue-500  pb-32">
+      <div className="relative bg-gradient-to-r from-purple-600 pt-10 via-pink-500 to-blue-500  pb-32">
         <div className="absolute inset-0 bg-black/10"></div>
         <div className="relative max-w-4xl mx-auto px-6">
           <div className="text-center">

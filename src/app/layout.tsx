@@ -19,7 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body className={`relative ${GeistSans.className} ${GeistMono.className}`}>
         <Header/>
-        <div className="pt-24">  {children }</div>
+        <div >  {children }</div>
       
         <div className="fixed right-2 bottom-2 z-50 text-xs text-gray-500 bg-white/80 px-3 py-1 rounded shadow">
           sponsored by Tewanay
