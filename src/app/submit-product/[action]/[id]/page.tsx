@@ -111,6 +111,7 @@ export default function SubmitProduct() {
     // Optionally validate file type/size here
     const url = await uploadToCloudinary(file);
     if (url) {
+      console.log("image uploaded")
       setProductImage(url);
     } else {
       setUploadError("Failed to upload image to Cloudinary");
@@ -142,7 +143,7 @@ export default function SubmitProduct() {
       try {
         setIsSubmitting(true);
         setSubmitStatus("idle");
-        const productData = { ...formData, image: productImage || "" };
+        const productData = { ...formData, image: productImage || formData.image || "" };
         const productId = await createProduct(productData, user.uid);
         setSubmitStatus("success");
         setSubmitMessage("Product submitted successfully!");
@@ -162,6 +163,12 @@ export default function SubmitProduct() {
         if (key === "tags") {
           if (JSON.stringify(formData.tags) !== JSON.stringify(originalProduct.tags)) {
             changedFields.tags = formData.tags;
+          }
+        } else if (key === "image") {
+          // Use productImage if set, otherwise formData.image
+          const newImage = productImage || formData.image || "";
+          if (newImage !== originalProduct.image) {
+            changedFields.image = newImage;
           }
         } else if (formData[key] !== originalProduct[key]) {
           changedFields[key] = formData[key];

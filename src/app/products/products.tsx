@@ -6,6 +6,7 @@ import { MessageCircle} from "lucide-react"
 import { CircleChevronUp } from "lucide-react"
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
 import Image from "next/image"
+import { Tag } from "lucide-react"
 
 const TrendingIcon = () => (
   <svg
@@ -64,15 +65,15 @@ const TrendingIcon = () => (
       }`}
     >
       <div className="flex items-center gap-x-5">
-        <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-3 rounded-xl text-2xl h-14 w-14 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-300">
+        <div className="bg-gradient-to-br from-gray-100 to-gray-200 rounded-2xl  text-2xl h-14 w-14 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-300">
           {startup.image && startup.image.trim() !== "" ? (
-            <span className="font-bold w-6 h-6 rounded-full">
+            <span className="font-bold w-full h-full rounded-full">
               <Image
                 src={startup.image}
                 height={24}
                 width={24}
                 alt="product image"
-                className="w-full h-full"
+                className="w-full h-full rounded-2xl"
               />
             </span>
           ) : (
@@ -86,12 +87,7 @@ const TrendingIcon = () => (
             <h3 className="font-bold text-lg text-gray-900 group-hover:text-gray-700 transition-colors duration-200">
               {startup.name}
             </h3>
-            {isPromoted && (
-              <div className="flex items-center gap-1">
-                <TrendingIcon />
-                <span className="text-xs font-semibold text-green-600">Trending</span>
-              </div>
-            )}
+          
           </div>
           <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">{startup.desc}</p>
         </div>
@@ -111,6 +107,21 @@ const TrendingIcon = () => (
           <p className="text-sm font-bold text-gray-700 mt-1">{upvote || 0}</p>
         </button>
       </div>
+      <div className="flex items-center pt-2 gap-2 flex-wrap">
+        <Tag className="pl-2 "/>
+      {startup.tags && ((startup.tags).map((tag:string)=>(
+           <div className="text-black flex    shadow-b-sm  gap-2 h-full  text-sm">
+            {tag}
+            <span className="text-blue-400 h-full items-center pr-2">.</span>
+           
+           </div>
+            
+
+        ))
+         )}
+      </div>
+        
+      
     </div>
   </>
 }
@@ -127,6 +138,7 @@ export default function Products({ ActiveMonth }: { ActiveMonth: any }) {
       try {
         setLoading(true)
         const products = await getProducts()
+        console.log(products)
         setStartups(products || [])
         setError(null)
       } catch (err) {
@@ -218,43 +230,7 @@ export default function Products({ ActiveMonth }: { ActiveMonth: any }) {
         </div>
       </div>
 
-      {/* Featured Section
-      <div className="mb-16">
-        <div className="flex items-center gap-3 mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">⭐ Featured This Week</h2>
-          <div className="h-1 flex-1 bg-gradient-to-r from-yellow-400 to-transparent rounded-full"></div>
-        </div>
-        <div className="mt-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">Featured this week</h2>
-          <div className="space-y-4">
-            {featured.map((startup, index) => (
-              <button key={index} onClick={() => handleClick(startup)} className="w-full text-left">
-                <StartupItem startup={startup} index={index} isPromoted={true} />
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* More Startups Section */}
-      {/* <div className="mb-12">
-        <div className="flex items-center gap-3 mb-8">
-          <h2 className="text-3xl font-bold text-gray-800">💎 More Discoveries</h2>
-          <div className="h-1 flex-1 bg-gradient-to-r from-purple-400 to-transparent rounded-full"></div>
-        </div>
-        <div className="mt-8">
-          <h2 className="text-xl font-bold text-gray-800 mb-4">More from this week</h2>
-          <div className="space-y-4">
-            {moreStartups.map((startup, index) => (
-              <button key={index} onClick={() => handleClick(startup)} className="w-full text-left">
-                <StartupItem startup={startup} index={startups.length + featured.length + index} />
-              </button>
-            ))}
-          </div>
-        </div>
-      </div> */} 
-
-      {/* Footer CTA */}
+      
       <div className="text-center py-12">
         <div className="bg-gradient-to-r from-gray-800 to-gray-600 rounded-3xl p-8 text-white">
           <h3 className="text-2xl font-bold mb-4">Ready to Launch Your Startup?</h3>
