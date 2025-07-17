@@ -190,12 +190,12 @@ export default function ProductPage({ params }: { params: any }) {
  
 
   return (
-    <div className="bg-gray-50 min-h-screen ">
+    <div className="bg-gray-50 min-h-screen max-w-screen   ">
       <div className="flex flex-col lg:flex-row gap-8 p-6 max-w-7xl mx-auto pt-24">
         {/* Main Content */}
-        <div className="flex-1 bg-white rounded-lg shadow-sm">
+        <div className="flex-1 bg-white overflow-hidden max-w-screen rounded-lg shadow-sm">
           {/* Header */}
-          <div className="p-6 border-b">
+          <div className="p-6 border-b ">
             <div className="flex items-start gap-4">
               {product.image && product.image.trim() !== "" ? (
                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
@@ -237,9 +237,7 @@ export default function ProductPage({ params }: { params: any }) {
               </div>
             </div>
             <div className="mt-4">
-              <p className="text-gray-700 text-sm leading-relaxed">
-                {product.description}
-              </p>
+            
               <div className="flex gap-2 mt-3">
                 {product.tags.map((tag, index) => (
                   <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
@@ -258,30 +256,20 @@ export default function ProductPage({ params }: { params: any }) {
           {/* Image Carousel */}
           <div className="p-6">
             <div className="relative">
-              <div className="overflow-hidden rounded-lg bg-gradient-to-r from-pink-100 via-purple-100 to-blue-100">
-                <div className="relative h-80 flex items-center justify-center">
+              <div className="overflow-x-auto flex gap-2 rounded-lg bg-gradient-to-r from-pink-100 via-purple-100 to-blue-100 ">
+                {carouselImages.map((image)=>(<div className="relative h-80 bg-white flex items-center justify-center w-72">
                   <img
-                    src={product.image && product.image.trim() !== "" ? product.image : "/placeholder.svg?height=320&width=600"}
+                    src={image}
                     alt="Product screenshot"
-                    className="max-h-full max-w-full object-contain"
+                    className="max-h-full max-w-fit object-contain"
                   />
 
                   {/* Navigation Arrows */}
-                  <button
-                    onClick={prevSlide}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors"
-                  >
-                    <ChevronLeft className="w-5 h-5 text-gray-600" />
-                  </button>
-                  <button
-                    onClick={nextSlide}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors"
-                  >
-                    <ChevronRight className="w-5 h-5 text-gray-600" />
-                  </button>
+                  
                 </div>
-              </div>
-
+            
+))}  </div>
+                
               {/* Carousel Dots */}
               <div className="flex justify-center mt-4 gap-2">
                 {carouselImages.map((_, index) => (
