@@ -40,7 +40,7 @@ export default function RightCom(){
         share what you'r working on and get featured in-front of 17k founders.
     </p>
     <div className="text-black bg-gradient-to-r from-[#e14eca] to-[#3b82f6] p-[2px] animated-button1 rounded-2xl relative overflow-hidden">
-  <button  className="bg-white rounded-xl w-full relative z-10"><Link href="/submit-product">New Launch</Link></button >
+  <button  className="bg-white rounded-xl w-full relative z-10"><Link href="/submit-product/launch">New Launch</Link></button >
   <span />
   <span />
   <span />
