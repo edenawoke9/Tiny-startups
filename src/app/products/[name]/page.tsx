@@ -197,9 +197,19 @@ export default function ProductPage({ params }: { params: any }) {
           {/* Header */}
           <div className="p-6 border-b">
             <div className="flex items-start gap-4">
-              <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-pink-500 rounded-xl flex items-center justify-center text-white text-2xl font-bold">
-                {product.name.charAt(0).toUpperCase()}
-              </div>
+              {product.image && product.image.trim() !== "" ? (
+                <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
+                  <img
+                    src={product.image}
+                    alt="Product"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="w-16 h-16 bg-gradient-to-br from-orange-400 to-pink-500 rounded-xl flex items-center justify-center text-white text-2xl font-bold">
+                  {product.name.charAt(0).toUpperCase()}
+                </div>
+              )}
               <div className="flex-1">
                 <h1 className="text-2xl font-bold text-gray-900 mb-1">{product.name}</h1>
                 <p className="text-gray-600 mb-3">{product.description}</p>
@@ -251,7 +261,7 @@ export default function ProductPage({ params }: { params: any }) {
               <div className="overflow-hidden rounded-lg bg-gradient-to-r from-pink-100 via-purple-100 to-blue-100">
                 <div className="relative h-80 flex items-center justify-center">
                   <img
-                    src="/placeholder.svg?height=320&width=600"
+                    src={product.image && product.image.trim() !== "" ? product.image : "/placeholder.svg?height=320&width=600"}
                     alt="Product screenshot"
                     className="max-h-full max-w-full object-contain"
                   />

@@ -6,6 +6,8 @@ import type { Product } from "@/lib/types"
 import { MessageCircle, CircleChevronUp, Search, Plus, Package, MoreHorizontal } from "lucide-react"
 import Link from "next/link"
 import { deleteProduct, updateProduct } from "@/lib/firestore";
+import { useRouter } from "next/navigation"
+import Image from "next/image"
 
 export default function MyProducts() {
   const { user } = useFirebaseAuth()
@@ -13,6 +15,7 @@ export default function MyProducts() {
   const [searchQuery, setSearchQuery] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const router=useRouter()
 
   useEffect(() => {
     if (user && user.uid) {
@@ -95,7 +98,7 @@ export default function MyProducts() {
   )
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-50 pt-32 pb-20">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-purple-100  pt-32 pb-20 bg-amber-400">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center mb-16">
@@ -130,7 +133,7 @@ export default function MyProducts() {
             {filteredProducts.map((product, index) => (
               <div
                 key={product.id || index}
-                className="group bg-white/80 backdrop-blur-sm hover:bg-white rounded-3xl shadow-lg hover:shadow-2xl border border-gray-100 hover:border-purple-200 p-8 transition-all duration-500 ease-out hover:-translate-y-2 relative overflow-hidden"
+                className="group bg-white/80 backdrop-blur-sm hover:bg-white rounded-3xl shadow-lg hover:shadow-2xl border border-gray-100 hover:border-purple-200 p-8 transition-all duration-500 ease-out hover:-translate-y-2 relative overflow-visible "
               >
                 {/* Subtle gradient overlay on hover */}
                 <div className="absolute inset-0 bg-gradient-to-r from-purple-50/0 to-blue-50/0 group-hover:from-purple-50/30 group-hover:to-blue-50/30 transition-all duration-500 rounded-3xl"></div>
@@ -138,9 +141,16 @@ export default function MyProducts() {
                 <div className="relative flex items-center gap-8">
                   {/* Product Icon */}
                   <div className="bg-gradient-to-br from-purple-100 to-blue-100 group-hover:from-purple-200 group-hover:to-blue-200 p-5 rounded-3xl text-3xl h-20 w-20 flex items-center justify-center flex-shrink-0 shadow-lg group-hover:shadow-xl transition-all duration-300 group-hover:scale-110 group-hover:rotate-3">
-                    <span className="font-bold text-purple-600 group-hover:text-purple-700">
-                      {product.name.charAt(0).toUpperCase()}
-                    </span>
+                    {product.image && product.image.trim() !== "" ? (
+                      <span className="font-bold w-6 h-6 rounded-full ">
+                        <Image src={product.image} height={24} width={24} alt="product image" className="w-full h-full"/>
+                      </span>
+                    ) : (
+                      <span className="font-bold text-purple-600 group-hover:text-purple-700">
+                        {product.name.charAt(0).toUpperCase()}
+                      </span>
+                    )}
+                    
                   </div>
 
                   {/* Product Info */}
@@ -180,33 +190,35 @@ export default function MyProducts() {
                 </div>
 
                 {/* 3-dot menu for product owner */}
-                {user && product.userId === user.uid && (
-                  <div className="absolute top-6 right-8 z-10">
-                    <button
-                      className="p-2 rounded-full hover:bg-gray-200"
-                      aria-label="Product actions"
-                      onClick={() => setOpenMenuId(openMenuId === product.id ? null : (product.id ?? null))}
-                    >
-                      <MoreHorizontal className="w-6 h-6" />
-                    </button>
-                    {openMenuId === product.id && (
-                      <div className="absolute right-0 mt-2 w-32 bg-white border rounded shadow-lg z-20">
-                        <button
-                          className="block w-full px-4 py-2 text-left hover:bg-gray-100"
-                          onClick={() => handleUpdate(product)}
-                        >
-                          Update
-                        </button>
-                        <button
-                          className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
-                          onClick={() => handleDelete(product.id!)}
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
+                
+                  <div className="absolute bottom-0  right-8 z-10">
+                    <div>
+                      <button
+                        className="p-2 relative rounded-full hover:bg-gray-200"
+                        aria-label="Product actions"
+                        onClick={() => setOpenMenuId(openMenuId === product.id ? null : (product.id ?? null))}
+                      >
+                        <MoreHorizontal className="w-6 h-6" />
+                      </button>
+                      {openMenuId === product.id && (
+                        <div className=" bg-white absolute top-full right-0  w-32  border rounded shadow-lg z-40">
+                          <button
+                            className="block w-full px-4 py-2 text-left hover:bg-gray-100"
+                            onClick={() => router.push(`/submit-product/update/${product.id}`)}
+                          >
+                            Update
+                          </button>
+                          <button
+                            className="block w-full px-4 py-2 text-left hover:bg-gray-100 text-red-600"
+                            onClick={() => handleDelete(product.id!)}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
+               
               </div>
             ))}
           </div>

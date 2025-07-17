@@ -135,8 +135,15 @@ export  default function AboutYou() {
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    await updateUser(user.uid, { ...formData });
-    // Optionally, show a success message or refetch user
+    try {
+      await updateUser(user.uid, { ...formData });
+      // Optionally show a success message
+      alert("Profile updated!");
+      // Optionally refetch user data here if you want to ensure it's fresh
+    } catch (err) {
+      alert("Failed to update profile.");
+      console.error(err);
+    }
   };
 
   return (
@@ -332,7 +339,7 @@ export  default function AboutYou() {
                 <h2 className="text-2xl font-semibold text-gray-800 border-b border-gray-200 pb-3">About You</h2>
 
                 {/* Headline */}
-                <div className="space-y-2">
+                <div className="space-y-2 flex flex-col items-center">
                   <div className="flex items-center justify-between">
                     <label className="text-sm font-semibold text-gray-700">Professional Headline</label>
                     <span className={`text-sm font-medium ${headlineCount > 35 ? "text-orange-500" : "text-gray-500"}`}>
@@ -350,7 +357,7 @@ export  default function AboutYou() {
                   <p className="text-xs text-gray-500">
                     Write a brief description that captures who you are professionally
                   </p>
-                  <button type="submit" className="p-2 pl-6 pr-6 border  border-purple-500 rounded-xl" onClick={handleSave}>
+                  <button type="submit" className="p-2 pl-6 pr-6 border   border-purple-500 rounded-xl" onClick={handleSave}>
                     Save
                   </button>
                 </div>

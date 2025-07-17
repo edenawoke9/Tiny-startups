@@ -5,6 +5,7 @@ import { getProducts, getProduct,upvoteProduct } from "../../lib/firestore"
 import { MessageCircle} from "lucide-react"
 import { CircleChevronUp } from "lucide-react"
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
+import Image from "next/image"
 
 const TrendingIcon = () => (
   <svg
@@ -64,7 +65,21 @@ const TrendingIcon = () => (
     >
       <div className="flex items-center gap-x-5">
         <div className="bg-gradient-to-br from-gray-100 to-gray-200 p-3 rounded-xl text-2xl h-14 w-14 flex items-center justify-center flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-300">
-          {startup.name.charAt(0).toUpperCase()}
+          {startup.image && startup.image.trim() !== "" ? (
+            <span className="font-bold w-6 h-6 rounded-full">
+              <Image
+                src={startup.image}
+                height={24}
+                width={24}
+                alt="product image"
+                className="w-full h-full"
+              />
+            </span>
+          ) : (
+            <span className="font-bold text-purple-600 group-hover:text-purple-700">
+              {startup.name.charAt(0).toUpperCase()}
+            </span>
+          )}
         </div>
         <div className="flex-grow min-w-0">
           <div className="flex items-center gap-x-3 mb-2">

@@ -1,30 +1,78 @@
 "use client"
 
-import { useState, useCallback } from "react"
-import { useRouter } from "next/navigation"
+import { useState, useCallback, useEffect, useRef } from "react"
+import { useParams, useRouter } from "next/navigation"
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
-import { createProduct } from "@/lib/firestore"
+import { createProduct, updateProduct, getProduct } from "@/lib/firestore"
 import { CreateProductInput } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle, AlertCircle, MoreHorizontal } from "lucide-react"
+import { SignUp } from "@/components/Auth"
+interface state{
+  id:"string",
+  name:"string"
+
+}
 
 export default function SubmitProduct() {
+  const params = useParams();
+  const action = params.action as string;
+  const id = params.id as string | undefined;
+
+  // Set button text based on action
+  const [button, setButton] = useState<string>("Create");
+  let text
+  useEffect(()=>{
+    setButton(action === "update" ? "Update" : "Create");
+    if (action === "update"){
+      text="Update"
+    }
+    else{
+      text="Create"
+    }
+
+  },[action])
+  
+ 
   const [formData, setFormData] = useState<CreateProductInput>({
     name: "",
     description: "",
     url: "",
-    tags: []
+    tags: [],
+    image:""
   })
   const [tagInput, setTagInput] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
   const [submitMessage, setSubmitMessage] = useState("")
+  const [showSignUp, setShowSignUp] = useState(false);
+  const [originalProduct, setOriginalProduct] = useState<CreateProductInput | null>(null);
+  const [productImage, setProductImage] = useState<string | null>(null);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const { user, loading: authLoading } = useFirebaseAuth()
+  const { user, loading: authLoading, error, signInWithGoogle, signInWithGithub } = useFirebaseAuth();
   const router = useRouter()
+
+  useEffect(() => {
+    if (action === "update" && id) {
+      getProduct(id).then((product) => {
+        if (product) {
+          setOriginalProduct(product);
+          setFormData({
+            name: product.name ?? "",
+            description: product.description ?? "",
+            url: product.url ?? "",
+            tags: Array.isArray(product.tags) ? product.tags : [],
+            image: product.image ?? ""
+          });
+        }
+      });
+    }
+  }, [action, id]);
 
   const handleInputChange = useCallback((field: keyof CreateProductInput, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -45,66 +93,94 @@ export default function SubmitProduct() {
     setFormData(prev => ({ ...prev, tags: prev.tags.filter(tag => tag !== tagToRemove) }))
   }, [])
 
+  const uploadToCloudinary = async (file: File): Promise<string | null> => {
+    const url = `https://api.cloudinary.com/v1_1/dinhnncvj/upload`;
+    const formData = new FormData();
+    formData.append("file", file);
+    formData.append("upload_preset", "unsigned");
+    const res = await fetch(url, {
+      method: "POST",
+      body: formData,
+    });
+    const data = await res.json();
+    return data.secure_url || null;
+  };
+
+  const handleProductImageUpload = async (file: File) => {
+    setUploadError(null);
+    // Optionally validate file type/size here
+    const url = await uploadToCloudinary(file);
+    if (url) {
+      setProductImage(url);
+    } else {
+      setUploadError("Failed to upload image to Cloudinary");
+    }
+  };
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) handleProductImageUpload(file);
+  };
+
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    console.log("=== PRODUCT SUBMISSION DEBUG ===")
-    console.log("Form data:", formData)
-    console.log("User:", user)
-    console.log("Tag input:", tagInput)
-    
+    e.preventDefault();
+
     if (!user) {
-      console.log("❌ No user found - submission blocked")
-      setSubmitStatus("error")
-      setSubmitMessage("Please sign in to submit a product")
-      return
+      setSubmitStatus("error");
+      setSubmitMessage("Please sign in to submit a product");
+      return;
     }
 
-    if (!formData.name.trim() || !formData.description.trim() || !formData.url.trim()) {
-      console.log("❌ Validation failed:")
-      console.log("- Name:", formData.name.trim() ? "✅" : "❌")
-      console.log("- Description:", formData.description.trim() ? "✅" : "❌")
-      console.log("- URL:", formData.url.trim() ? "✅" : "❌")
-      setSubmitStatus("error")
-      setSubmitMessage("Please fill in all required fields")
-      return
+    if (button === "Create" && (!formData.name.trim() || !formData.description.trim() || !formData.url.trim())) {
+      setSubmitStatus("error");
+      setSubmitMessage("Please fill in all required fields");
+      return;
     }
 
-    console.log("✅ Validation passed, starting submission...")
+    if (button === "Create") {
+      // create logic
+      try {
+        setIsSubmitting(true);
+        setSubmitStatus("idle");
+        const productData = { ...formData, image: productImage || "" };
+        const productId = await createProduct(productData, user.uid);
+        setSubmitStatus("success");
+        setSubmitMessage("Product submitted successfully!");
+        router.push(`/products/${productId}`);
+      } catch (err) {
+        setSubmitStatus("error");
+        setSubmitMessage("Failed to submit product. Please try again.");
+      } finally {
+        setIsSubmitting(false);
+      }
+    } else if (button === "Update" && id) {
+      if (!originalProduct) return; // Wait for original data
 
-    try {
-      setIsSubmitting(true)
-      setSubmitStatus("idle")
-      
-      console.log("🚀 Calling createProduct with:", {
-        productData: formData,
-        userId: user.uid
-      })
-      
-      const productId = await createProduct(formData, user.uid)
-      
-      console.log("✅ Product created successfully with ID:", productId)
-      
-      setSubmitStatus("success")
-      setSubmitMessage("Product submitted successfully!")
-      
-      console.log("🔄 Redirecting to product page...")
-      router.push(`/products/${productId}`)
-      
-    } catch (err) {
-      console.error("❌ Error submitting product:", err)
-      console.error("Error details:", {
-        message: err instanceof Error ? err.message : 'Unknown error',
-        stack: err instanceof Error ? err.stack : 'No stack trace',
-        error: err
-      })
-      setSubmitStatus("error")
-      setSubmitMessage("Failed to submit product. Please try again.")
-    } finally {
-      console.log("🏁 Submission process completed")
-      setIsSubmitting(false)
+      // Build an object with only changed fields
+      const changedFields: Partial<CreateProductInput> = {};
+      (Object.keys(formData) as (keyof CreateProductInput)[]).forEach((key) => {
+        if (key === "tags") {
+          if (JSON.stringify(formData.tags) !== JSON.stringify(originalProduct.tags)) {
+            changedFields.tags = formData.tags;
+          }
+        } else if (formData[key] !== originalProduct[key]) {
+          changedFields[key] = formData[key];
+        }
+      });
+
+      if (Object.keys(changedFields).length === 0) {
+        alert("No changes to update.");
+        return;
+      }
+
+      try {
+        await updateProduct(id, user.uid, changedFields);
+        alert("Product updated!");
+      } catch (err) {
+        alert("Failed to update product.");
+      }
     }
-  }, [formData, user, router])
+  }, [formData, user, router, button, id, originalProduct, productImage]);
 
   if (authLoading) {
     return (
@@ -119,21 +195,33 @@ export default function SubmitProduct() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center max-w-md mx-auto p-6">
-          <h1 className="text-2xl font-bold text-gray-900 mb-4">Sign In Required</h1>
-          <p className="text-gray-600 mb-6">
-            You need to be signed in to submit a product. Please sign in with Google or GitHub to continue.
-          </p>
-          <button 
-            onClick={() => router.push('/login')}
-            className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
-          >
-            Sign In
-          </button>
+      <>
+        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+          <div className="text-center max-w-md mx-auto p-6">
+            <h1 className="text-2xl font-bold text-gray-900 mb-4">Sign In Required</h1>
+            <p className="text-gray-600 mb-6">
+              You need to be signed in to submit a product. Please sign in with Google or GitHub to continue.
+            </p>
+            <button 
+              onClick={() => setShowSignUp(true)}
+              className="bg-orange-500 hover:bg-orange-600 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+            >
+              Sign In
+            </button>
+          </div>
         </div>
-      </div>
-    )
+        {showSignUp && (
+          <SignUp
+            setClicked={setShowSignUp}
+            clicked={showSignUp}
+            error={error}
+            loading={authLoading}
+            signInWithGoogle={signInWithGoogle}
+            signInWithGithub={signInWithGithub}
+          />
+        )}
+      </>
+    );
   }
 
   return (
@@ -148,6 +236,27 @@ export default function SubmitProduct() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="mb-6 flex flex-col items-center">
+              <div
+                className="relative w-32 h-32 rounded-full overflow-hidden bg-gray-100 flex items-center justify-center cursor-pointer"
+                onClick={() => fileInputRef.current?.click()}
+              >
+                {productImage ? (
+                  <img src={productImage} alt="Product" className="w-full h-full object-cover" />
+                ) : (
+                  <span className="text-gray-400">Upload Image</span>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/jpg,image/png,image/webp"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                />
+              </div>
+              {uploadError && <div className="text-red-500 mt-2">{uploadError}</div>}
+            </div>
+
             {/* Product Name */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
@@ -160,7 +269,7 @@ export default function SubmitProduct() {
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 className="w-full"
-                required
+                required={button === "Create"}
               />
             </div>
 
@@ -176,7 +285,7 @@ export default function SubmitProduct() {
                 onChange={(e) => handleInputChange("description", e.target.value)}
                 rows={4}
                 className="w-full"
-                required
+                required={button === "Create"}
               />
             </div>
 
@@ -192,7 +301,7 @@ export default function SubmitProduct() {
                 value={formData.url}
                 onChange={(e) => handleInputChange("url", e.target.value)}
                 className="w-full"
-                required
+                required={button === "Create"}
               />
             </div>
 
@@ -263,7 +372,7 @@ export default function SubmitProduct() {
               className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg disabled:opacity-50"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Submitting..." : "Submit Product"}
+              {isSubmitting ? "Submitting..." : `${button}`}
             </Button>
           </form>
 

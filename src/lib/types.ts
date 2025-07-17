@@ -10,7 +10,8 @@ export interface Product {
   upvotedBy: string[];
   commentsCount: number;
   tags: string[];
-  month?: string; // Added month field
+  month?: string; 
+  image:string;// Added month field
 }
 
 // User interface
@@ -38,6 +39,7 @@ export interface CreateProductInput {
   description: string;
   url: string;
   tags: string[];
+  image:string;
 }
 
 // Create comment input

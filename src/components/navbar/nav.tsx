@@ -88,7 +88,7 @@ export default function Header() {
           </nav>
 
           <div className="flex gap-3">
-            <Link href="/submit-product" className="group animated-button1 bg-white text-gray-700 flex items-center border bg-gradient-to-r from-[#e14eca] to-[#3b82f6]  rounded-xl  p-[2px]">
+            <Link href="/submit-product/launch" className="group animated-button1 bg-white text-gray-700 flex items-center border bg-gradient-to-r from-[#e14eca] to-[#3b82f6]  rounded-xl  p-[2px]">
               <div className="bg-white flex pl-4 pr-4 w-full h-full items-center rounded-xl">
                <div className="text-xl pr-2">
   +
