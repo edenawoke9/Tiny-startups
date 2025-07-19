@@ -5,7 +5,7 @@ import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
 import type { Product } from "@/lib/types"
 import { MessageCircle, CircleChevronUp, Search, Plus, Package, MoreHorizontal } from "lucide-react"
 import Link from "next/link"
-import { deleteProduct, updateProduct } from "@/lib/firestore";
+import { deleteProduct } from "@/lib/firestore";
 import { useRouter } from "next/navigation"
 import Image from "next/image"
 
@@ -45,12 +45,6 @@ export default function MyProducts() {
     setOpenMenuId(null);
   };
 
-  const handleUpdate = (product: Product) => {
-    // You can open a modal or inline form here
-    alert("Update logic here for: " + product.name);
-    setOpenMenuId(null);
-  };
-
   const EmptyState = () => (
     <div className="flex flex-col items-center justify-center py-20 px-4">
       <div className="bg-gradient-to-br from-purple-100 to-blue-100 p-8 rounded-full mb-8 shadow-lg">
@@ -60,7 +54,7 @@ export default function MyProducts() {
       <p className="text-gray-600 text-center mb-10 max-w-md text-lg leading-relaxed">
         {searchQuery
           ? `No products found matching "${searchQuery}". Try a different search term.`
-          : "You haven't launched any products yet. Create your first product to get started!"}
+          : "You haven&apos;t added any products yet."}
       </p>
       {!searchQuery && (
         <div className="relative group">
@@ -106,7 +100,7 @@ export default function MyProducts() {
             My Products
           </h1>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            Manage and track your launched products. See how they're performing and engage with your community.
+            Manage and track your launched products. See how they&aposre performing and engage with your community.
           </p>
         </div>
 

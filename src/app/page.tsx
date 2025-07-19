@@ -44,7 +44,6 @@ export function MonthList() {
     const dateForMonth = new Date(year, monthNum, 1)
     const startDate = startOfMonth(dateForMonth)
     const endDate = endOfMonth(dateForMonth)
-    const currentDate = new Date()
 
     return {
       month: monthNum,

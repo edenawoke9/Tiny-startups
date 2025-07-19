@@ -1,50 +1,50 @@
 "use client"
 import { useRouter } from "next/navigation"
 import { useState, useEffect } from "react"
-import { getProducts, getProduct,upvoteProduct } from "../../lib/firestore"
+import { getProducts, upvoteProduct } from "../../lib/firestore"
 import { MessageCircle} from "lucide-react"
 import { CircleChevronUp } from "lucide-react"
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
 import Image from "next/image"
 import { Tag } from "lucide-react"
 import Link from "next/link"
+import { Product } from "../../lib/types";
 
 
+function StartupItem({ startup, isPromoted = false }: { startup: Product; isPromoted?: boolean }) {
+  const { user } = useFirebaseAuth();
+  const [upvote, setUpvote] = useState<number>(startup.upvotes);
+  const [hasUpvoted, setHasUpvoted] = useState<boolean>(user ? startup.upvotedBy.includes(user.uid) : false);
+  const [loading, setLoading] = useState(false);
 
- function StartupItem ({ startup, index, isPromoted = false, id }: { startup: any; index: number; isPromoted?: boolean; id:string; }){
-  const {user}=useFirebaseAuth()
-  const [upvote, setUpvote] = useState<number>(startup.upvotes)
-  const [hasUpvoted, setHasUpvoted] = useState<boolean>(user ? startup.upvotedBy.includes(user.uid) : false)
-  const [loading, setLoading] = useState(false)
-
-  // Sync local state with prop changes
   useEffect(() => {
-    setUpvote(startup.upvotes)
-    setHasUpvoted(user ? startup.upvotedBy.includes(user.uid) : false)
-  }, [startup.upvotes, startup.upvotedBy, user])
+    setUpvote(startup.upvotes);
+    setHasUpvoted(user ? startup.upvotedBy.includes(user.uid) : false);
+  }, [startup.upvotes, startup.upvotedBy, user]);
 
-  const handleUpvote = async (startup: any) => {
+  const handleUpvote = async (startup: Product) => {
     if (!user) return;
-    setLoading(true)
+    setLoading(true);
     try {
+      if (!startup.id) return;
       await upvoteProduct(startup.id, user.uid);
-      // Fetch updated product data (simulate by toggling local state for immediate feedback)
       if (hasUpvoted) {
-        setUpvote(u => u - 1)
-        setHasUpvoted(false)
+        setUpvote(u => u - 1);
+        setHasUpvoted(false);
       } else {
-        setUpvote(u => u + 1)
-        setHasUpvoted(true)
+        setUpvote(u => u + 1);
+        setHasUpvoted(true);
       }
-      // In a real app, you might want to refetch the product from the server here
-    } catch (err) {
+    } catch {
       // Optionally handle error
     } finally {
-      setLoading(false)
+      setLoading(false);
     }
-  }
+  };
 
-  return <>
+  const imageSrc = (typeof startup.image === 'string' && startup.image.trim() !== '' ? startup.image : '/logo.jpg') as string;
+
+  return (
     <div
       className={`group  bg-white hover:bg-gray-50  rounded-2xl shadow-sm hover:shadow-lg border border-gray-100 p-2 hover:border-gray-200 transition-all duration-300 ease-in-out transform hover:-translate-y-1 z-40${
         isPromoted ? "ring-2 ring-orange-200 bg-gradient-to-r from-orange-50 to-yellow-50" : ""
@@ -55,7 +55,7 @@ import Link from "next/link"
           {startup.image && startup.image.trim() !== "" ? (
             <span className="font-bold w-full h-full rounded-full">
               <Image
-                src={startup.image}
+                src={`${imageSrc}`}
                 height={24}
                 width={24}
                 alt="product image"
@@ -75,7 +75,7 @@ import Link from "next/link"
             </h3>
           
           </div>
-          <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">{startup.desc}</p>
+          <p className="text-gray-600 text-sm leading-relaxed line-clamp-2">{startup.description}</p>
         </div>
         <div className="flex flex-col items-center justify-center bg-gradient-to-b from-gray-50 to-gray-100 hover:from-orange-50 hover:to-orange-100 border border-gray-200 hover:border-orange-300 rounded-xl  w-14 h-14 flex-shrink-0 transition-all duration-300 group-hover:scale-105">
           <MessageCircle />
@@ -95,7 +95,7 @@ import Link from "next/link"
       </div>
       <div className="flex items-center pt-2 gap-2 flex-wrap">
         <Tag className="pl-2 "/>
-      {startup.tags && ((startup.tags).map((tag:string,index:any)=>(
+      {startup.tags && ((startup.tags).map((tag:string,index:number)=>(
            <div key={index} className="text-black flex    shadow-b-sm  gap-2 h-full  text-sm">
             {tag}
             <span className="text-blue-400 h-full items-center pr-2">.</span>
@@ -109,56 +109,44 @@ import Link from "next/link"
         
       
     </div>
-  </>
+  );
 }
 
-export default function Products({ ActiveMonth }: { ActiveMonth: any }) {
-  const [startups, setStartups] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
-  const router = useRouter()
+type ProductsProps = {
+  ActiveMonth: { month: number; name: string; range: string }
+};
 
-  
+export default function Products({ ActiveMonth }: ProductsProps) {
+  console.log(ActiveMonth)
+  const [startups, setStartups] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        setLoading(true)
-        const products = await getProducts()
-        console.log(products)
-        setStartups(products || [])
-        setError(null)
-      } catch (err) {
-        console.error("Error fetching products:", err)
-        setError("Failed to load products")
-        setStartups([])
+        setLoading(true);
+        const products = await getProducts();
+        setStartups(products || []);
+        setError(null);
+      } catch {
+        setError("Failed to load products");
+        setStartups([]);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
-    }
+    };
+    fetchProducts();
+  }, []);
 
-    fetchProducts()
-  }, [])
-
-  const handleClick = (startup: any) => {
-    const name = startup.name
-    router.push(`/products/${name}`)
-  }
-
-  const handleProductClick = async (startup: any) => {
+  const handleProductClick = async (startup: Product) => {
     try {
-      
-      const productDetails = await getProduct(startup.id || startup.name)
-      console.log("Product details:", productDetails)
-      
-     
-      router.push(`/products/${startup.id}`)
-    } catch (err) {
-      console.error("Error fetching product details:", err)
-     
-      router.push(`/products/${startup.name}`)
+      router.push(`/products/${startup.id}`);
+    } catch {
+      router.push(`/products/${startup.name}`);
     }
-
-  }
+  };
 
   if (loading) {
     return (
@@ -189,13 +177,10 @@ export default function Products({ ActiveMonth }: { ActiveMonth: any }) {
 
   return (
     <div className="min-h-screen ">
-      
-
       {/* Top Startups Section */}
       <div className="mb-16 mt-10">
         <div className="flex items-center gap-3 mb-8">
           <h2 className="text-3xl font-semibold text-gray-800"> Top Startups</h2>
-         
         </div>
         <div className="space-y-4 mt-4">
           {startups.length > 0 ? (
@@ -205,7 +190,7 @@ export default function Products({ ActiveMonth }: { ActiveMonth: any }) {
                 onClick={() => handleProductClick(startup)}
                 className="w-full text-left cursor-pointer"
               >
-                <StartupItem startup={startup} index={index} id={startup.id} />
+                <StartupItem startup={startup} isPromoted={false} />
               </div>
             ))
           ) : (
@@ -215,8 +200,6 @@ export default function Products({ ActiveMonth }: { ActiveMonth: any }) {
           )}
         </div>
       </div>
-
-      
       <div className="text-center py-12">
         <div className="bg-gradient-to-r from-gray-800 to-gray-600 rounded-3xl p-8 text-white">
           <h3 className="text-2xl font-bold mb-4">Ready to Launch Your Startup?</h3>

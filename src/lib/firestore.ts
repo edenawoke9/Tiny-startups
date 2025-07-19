@@ -10,16 +10,13 @@ import {
   where, 
   orderBy, 
   limit, 
-  serverTimestamp,
   increment,
   arrayUnion,
   arrayRemove,
-  Timestamp,
   setDoc
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Product, User, Comment, CreateProductInput, CreateCommentInput } from './types';
-import { getAuth } from "firebase/auth";
 
 // Collection references
 export const productsCollection = collection(db, 'products');
@@ -103,7 +100,7 @@ export const getProducts = async (limitCount: number = 20): Promise<Product[]> =
     console.error("❌ Error in getProducts:", error)
     console.error("Error details:", {
       message: error instanceof Error ? error.message : 'Unknown error',
-      code: (error as any)?.code,
+      code: (error as unknown as { code?: string })?.code,
       stack: error instanceof Error ? error.stack : 'No stack trace'
     })
     throw error;
@@ -229,16 +226,14 @@ export const updateUser = async (userId: string, updates: Partial<User>): Promis
   await updateDoc(userRef, updates);
 };
 
-export async function ensureUserDocument(user: any) {
-  const userRef = doc(usersCollection, user.uid);
+export async function ensureUserDocument(user: unknown) {
+  const userRef = doc(usersCollection, (user as { uid: string }).uid);
   const userSnap = await getDoc(userRef);
   if (!userSnap.exists()) {
     await setDoc(userRef, {
-      name: user.displayName || user.email || "Anonymous",
-      email: user.email,
-      profilePic: user.photoURL || "",
-      joinedAt: new Date(),
-      productsSubmitted: 0,
+      displayName: (user as { displayName: string }).displayName,
+      photoURL: (user as { photoURL: string }).photoURL,
+      createdAt: new Date(),
     });
   }
 }

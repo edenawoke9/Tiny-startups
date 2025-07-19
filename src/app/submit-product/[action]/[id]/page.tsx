@@ -9,13 +9,9 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle, AlertCircle, MoreHorizontal } from "lucide-react"
+import { CheckCircle, AlertCircle } from "lucide-react"
 import { SignUp } from "@/components/Auth"
-interface state{
-  id:"string",
-  name:"string"
-
-}
+import Image from "next/image"
 
 export default function SubmitProduct() {
   const params = useParams();
@@ -24,14 +20,14 @@ export default function SubmitProduct() {
 
   // Set button text based on action
   const [button, setButton] = useState<string>("Create");
-  let text
+  const textRef = useRef<string>("");
   useEffect(()=>{
     setButton(action === "update" ? "Update" : "Create");
     if (action === "update"){
-      text="Update"
+      textRef.current = "Update"
     }
     else{
-      text="Create"
+      textRef.current = "Create"
     }
 
   },[action])
@@ -145,10 +141,6 @@ export default function SubmitProduct() {
     if (files) handleProductImagesUpload(files);
   };
 
-  const removeImage = (index: number) => {
-    setProductImages(prev => prev.filter((_, i) => i !== index));
-  };
-
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -176,6 +168,7 @@ export default function SubmitProduct() {
         router.push(`/products/${productId}`);
       } catch (err) {
         setSubmitStatus("error");
+        console.log(err)
         setSubmitMessage("Failed to submit product. Please try again.");
       } finally {
         setIsSubmitting(false);
@@ -212,6 +205,7 @@ export default function SubmitProduct() {
         await updateProduct(id, user.uid, changedFields);
         alert("Product updated!");
       } catch (err) {
+        console.log(err)
         alert("Failed to update product.");
       }
     }
@@ -278,7 +272,12 @@ export default function SubmitProduct() {
                 onClick={() => fileInputRef.current?.click()}
               >
                 {logoImage ? (
-                  <img src={logoImage} alt="Product Logo" className="w-full h-full object-cover" />
+                  <Image
+                    src={logoImage}
+                    alt="Product Logo"
+                    layout="fill"
+                    objectFit="cover"
+                  />
                 ) : (
                   <span className="text-gray-400">Upload Logo</span>
                 )}
@@ -302,7 +301,12 @@ export default function SubmitProduct() {
               >
                 {productImages.map((img, idx) => (
                   <div key={idx} className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                    <img src={img} alt={`Screenshot ${idx + 1}`} className="w-full h-full object-cover" />
+                    <Image
+                      src={img}
+                      alt={`Screenshot ${idx + 1}`}
+                      layout="fill"
+                      objectFit="cover"
+                    />
                     <button type="button" onClick={e => { e.stopPropagation(); setProductImages(prev => prev.filter((_, i) => i !== idx)); }} className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 text-red-500 hover:text-red-700">×</button>
                   </div>
                 ))}

@@ -38,7 +38,6 @@ export default function SignupForm() {
     signInWithGithub,
     loading: socialLoading,
     error: socialError,
-    user,
   } = useFirebaseAuth();
 
   const validateEmail = (email: string) =>

@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useCallback, useRef } from "react"
-import { useRouter, useParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
 import { createProduct } from "@/lib/firestore"
 import { CreateProductInput } from "@/lib/types"
@@ -11,10 +11,10 @@ import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { CheckCircle, AlertCircle } from "lucide-react"
 import { SignUp } from "@/components/Auth"
+import Image from "next/image"
 
 export default function CreateProductPage() {
-  const params = useParams();
-  const action = params.action as string;
+  
   const [formData, setFormData] = useState<CreateProductInput>({
     name: "",
     description: "",
@@ -102,10 +102,6 @@ export default function CreateProductPage() {
     if (files) handleProductImagesUpload(files);
   };
 
-  const removeImage = (index: number) => {
-    setProductImages(prev => prev.filter((_, i) => i !== index));
-  };
-
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) {
@@ -127,6 +123,7 @@ export default function CreateProductPage() {
       setSubmitMessage("Product submitted successfully!");
       router.push(`/products/${productId}`);
     } catch (err) {
+      console.log(err)
       setSubmitStatus("error");
       setSubmitMessage("Failed to submit product. Please try again.");
     } finally {
@@ -195,7 +192,12 @@ export default function CreateProductPage() {
                 onClick={() => fileInputRef.current?.click()}
               >
                 {logoImage ? (
-                  <img src={logoImage} alt="Product Logo" className="w-full h-full object-cover" />
+                  <Image
+                    src={logoImage}
+                    alt="Product Logo"
+                    layout="fill"
+                    objectFit="cover"
+                  />
                 ) : (
                   <span className="text-gray-400">Upload Logo</span>
                 )}
@@ -219,7 +221,12 @@ export default function CreateProductPage() {
               >
                 {productImages.map((img, idx) => (
                   <div key={idx} className="relative w-24 h-24 rounded-lg overflow-hidden bg-gray-100 flex items-center justify-center">
-                    <img src={img} alt={`Screenshot ${idx + 1}`} className="w-full h-full object-cover" />
+                    <Image
+                      src={img}
+                      alt={`Screenshot ${idx + 1}`}
+                      layout="fill"
+                      objectFit="cover"
+                    />
                     <button type="button" onClick={e => { e.stopPropagation(); setProductImages(prev => prev.filter((_, i) => i !== idx)); }} className="absolute top-1 right-1 bg-white bg-opacity-80 rounded-full p-1 text-red-500 hover:text-red-700">×</button>
                   </div>
                 ))}

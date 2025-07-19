@@ -8,10 +8,10 @@ import {
   onAuthStateChanged,
   User as FirebaseUser,
 } from 'firebase/auth';
-import { createUser, getUser, updateUser, ensureUserDocument } from '@/lib/firestore';
+import { getUser, ensureUserDocument } from '@/lib/firestore';
 
 export function useFirebaseAuth() {
-  const [user, setUser] = useState<any | null>(null); // allow merged user
+  const [user, setUser] = useState<FirebaseUser | null>(null); // allow merged user
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,11 +45,11 @@ export function useFirebaseAuth() {
       const provider = new GoogleAuthProvider();
       const result = await signInWithPopup(auth, provider);
       console.log('Google sign-in successful:', result.user);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Google sign-in error:', err);
-      console.error('Error code:', err.code);
-      console.error('Error message:', err.message);
-      setError(`${err.code}: ${err.message}`);
+      console.error('Error code:', (err as Error).code);
+      console.error('Error message:', (err as Error).message);
+      setError(`${(err as Error).code}: ${(err as Error).message}`);
     } finally {
       setLoading(false);
     }
@@ -63,11 +63,11 @@ export function useFirebaseAuth() {
       const provider = new GithubAuthProvider();
       const result = await signInWithPopup(auth, provider);
       console.log('GitHub sign-in successful:', result.user);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('GitHub sign-in error:', err);
-      console.error('Error code:', err.code);
-      console.error('Error message:', err.message);
-      setError(`${err.code}: ${err.message}`);
+      console.error('Error code:', (err as Error).code);
+      console.error('Error message:', (err as Error).message);
+      setError(`${(err as Error).code}: ${(err as Error).message}`);
     } finally {
       setLoading(false);
     }
@@ -78,9 +78,9 @@ export function useFirebaseAuth() {
     setLoading(true);
     try {
       await firebaseSignOut(auth);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('Sign-out error:', err);
-      setError(err.message);
+      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
