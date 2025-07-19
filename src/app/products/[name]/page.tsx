@@ -1,13 +1,13 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { ChevronLeft, ChevronRight, ThumbsUp, Share2 } from "lucide-react"
+import { use, useState, useEffect } from "react"
 import { MoreHorizontal } from "lucide-react"
 import { getProduct, getProductComments, createComment, upvoteProduct,getUser, deleteComment } from "@/lib/firestore"
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
 import { Product, Comment } from "@/lib/types"
 import React from "react"
 import { CircleChevronUp } from "lucide-react"
+import Image from "next/image"
 
 function UserName({ id }: { id: string }) {
   console.log("id is ",id)
@@ -21,8 +21,9 @@ function UserName({ id }: { id: string }) {
 }
 
 
-export default function ProductPage({ params }: { params: any }) {
-  const [currentSlide, setCurrentSlide] = useState(0)
+export default function ProductPage({ params }: { params: Promise<{ name: string }> }) {
+  const resolvedParams = use(params);
+  const productId = decodeURIComponent(resolvedParams.name);
   const [commentText, setCommentText] = useState("")
   const [product, setProduct] = useState<Product | null>(null)
   const [comments, setComments] = useState<Comment[]>([])
@@ -33,10 +34,15 @@ export default function ProductPage({ params }: { params: any }) {
   const [editingCommentId, setEditingCommentId] = useState<string | null>(null);
   const [editText, setEditText] = useState<string>("");
   const [showMenu, setShowMenu] = useState<string | null>(null);
+  const [customUser, setCustomUser] = useState<{ profilePic?: string } | null>(null);
 
   const { user } = useFirebaseAuth()
-  const { name }=React.use(params) as {name: string}
-  const productId = decodeURIComponent(name)
+
+  useEffect(() => {
+    if (user) {
+      getUser(user.uid).then(data => setCustomUser(data));
+    }
+  }, [user]);
 
   useEffect(() => {
     const fetchProductData = async () => {
@@ -164,7 +170,7 @@ export default function ProductPage({ params }: { params: any }) {
     return (
       <div className="p-8 text-center">
         <h1 className="text-2xl font-bold mb-2">Product Not Found</h1>
-        <p>No product found for "{productId}".</p>
+        <p>No product found for {productId}.</p>
       </div>
     )
   }
@@ -172,36 +178,24 @@ export default function ProductPage({ params }: { params: any }) {
   const isUpvoted = user ? product.upvotedBy.includes(user.uid) : false
 
   // Sample carousel images
-  const carouselImages = [
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-  ]
+  const carouselImages = Array.isArray(product.productImage) && product.productImage.length > 0 ? product.productImage : [];
 
-  const nextSlide = () => {
-    setCurrentSlide((prev) => (prev + 1) % carouselImages.length)
-  }
-
-  const prevSlide = () => {
-    setCurrentSlide((prev) => (prev - 1 + carouselImages.length) % carouselImages.length)
-  }
  
-
   return (
-    <div className="bg-gray-50 min-h-screen ">
+    <div className="bg-gray-50 min-h-screen max-w-screen   ">
       <div className="flex flex-col lg:flex-row gap-8 p-6 max-w-7xl mx-auto pt-24">
         {/* Main Content */}
-        <div className="flex-1 bg-white rounded-lg shadow-sm">
+        <div className="flex-1 bg-white overflow-hidden max-w-screen rounded-lg shadow-sm">
           {/* Header */}
-          <div className="p-6 border-b">
+          <div className="p-6 border-b ">
             <div className="flex items-start gap-4">
               {product.image && product.image.trim() !== "" ? (
                 <div className="w-16 h-16 rounded-xl overflow-hidden bg-gray-100 flex items-center justify-center">
-                  <img
+                  <Image
                     src={product.image}
                     alt="Product"
+                    width={24}
+                    height={24}
                     className="w-full h-full object-cover"
                   />
                 </div>
@@ -237,9 +231,7 @@ export default function ProductPage({ params }: { params: any }) {
               </div>
             </div>
             <div className="mt-4">
-              <p className="text-gray-700 text-sm leading-relaxed">
-                {product.description}
-              </p>
+            
               <div className="flex gap-2 mt-3">
                 {product.tags.map((tag, index) => (
                   <span key={index} className="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
@@ -258,42 +250,22 @@ export default function ProductPage({ params }: { params: any }) {
           {/* Image Carousel */}
           <div className="p-6">
             <div className="relative">
-              <div className="overflow-hidden rounded-lg bg-gradient-to-r from-pink-100 via-purple-100 to-blue-100">
-                <div className="relative h-80 flex items-center justify-center">
-                  <img
-                    src={product.image && product.image.trim() !== "" ? product.image : "/placeholder.svg?height=320&width=600"}
-                    alt="Product screenshot"
-                    className="max-h-full max-w-full object-contain"
-                  />
-
-                  {/* Navigation Arrows */}
-                  <button
-                    onClick={prevSlide}
-                    className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors"
-                  >
-                    <ChevronLeft className="w-5 h-5 text-gray-600" />
-                  </button>
-                  <button
-                    onClick={nextSlide}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/80 hover:bg-white rounded-full flex items-center justify-center shadow-lg transition-colors"
-                  >
-                    <ChevronRight className="w-5 h-5 text-gray-600" />
-                  </button>
-                </div>
+              <div className="overflow-x-auto flex gap-4 rounded-lg justify-center  ">
+                {carouselImages.length > 0 ? carouselImages.map((image: string, index: number) => (
+                  <div key={index} className="relative h-80 bg-gray-50 rounded-xl p-2 flex items-center shadow-sm justify-center border-gray-50 w-56">
+                    <Image
+                      src={image}
+                      alt="Product screenshot"
+                      width={288}
+                      height={320}
+                      className="max-h-full  object-contain"
+                    />
+                  </div>
+                )) : (
+                  <div className="h-80 w-72 flex items-center justify-center text-gray-400">No images available</div>
+                )}
               </div>
-
-              {/* Carousel Dots */}
-              <div className="flex justify-center mt-4 gap-2">
-                {carouselImages.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      index === currentSlide ? "bg-red-500" : "bg-gray-300"
-                    }`}
-                  />
-                ))}
-              </div>
+              
             </div>
           </div>
 
@@ -305,8 +277,8 @@ export default function ProductPage({ params }: { params: any }) {
               {user ? (
                 /* Comment Input */
                 <div className="flex gap-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                    {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                  <div className="w-8 h-8  rounded-full flex items-center justify-center text-white text-sm font-medium">
+                  <Image src={customUser?.profilePic || "/user.png"} height={25} width={25} alt="user profile" className="w-full h-full rounded-full"/>
                   </div>
                   <div className="flex-1">
                     <textarea
@@ -338,8 +310,8 @@ export default function ProductPage({ params }: { params: any }) {
             <div className="space-y-6">
               {comments.map((comment) => (
                 <div key={comment.id} className="flex gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                    <UserName id={comment.userId} />
+                  <div className="w-8 h-8  rounded-full flex items-center justify-center text-white text-sm font-medium">
+                  <Image src={customUser?.profilePic || "/user.png"} height={25} width={25} alt="user profile" className="w-full h-full rounded-full"/>
                   </div>
                   <div className="flex-1">
                     <div className="mb-2 flex items-center justify-between">

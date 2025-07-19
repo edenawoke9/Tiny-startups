@@ -18,7 +18,7 @@ export function useGlobalSession() {
 
 // Hook for making authenticated API calls from client components
 export function useAuthenticatedApi() {
-  const { session, getAuthToken } = useGlobalSession()
+  const { getAuthToken } = useGlobalSession()
 
   const makeRequest = async (url: string, options: RequestInit = {}) => {
     try {

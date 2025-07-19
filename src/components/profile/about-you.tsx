@@ -8,6 +8,7 @@ import { CardContent,Card } from "../ui/card"
 import { User, Info, Upload, X, Camera, Linkedin, Twitter } from "lucide-react"
 import { updateUser } from '@/lib/firestore';
 import { useFirebaseAuth } from '@/hooks/useFirebaseAuth';
+import Image from 'next/image';
 
 
 export  default function AboutYou() {
@@ -182,9 +183,11 @@ export  default function AboutYou() {
                 >
                   {profileImage ? (
                     <>
-                      <img
+                      <Image
                         src={profileImage || "/logo.jpg"}
                         alt="Profile"
+                        width={160}
+                        height={160}
                         className="w-full h-full object-cover"
                       />
                       <div className="absolute inset-0 bg-black bg-opacity-50 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">

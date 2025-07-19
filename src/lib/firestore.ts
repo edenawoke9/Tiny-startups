@@ -10,16 +10,13 @@ import {
   where, 
   orderBy, 
   limit, 
-  serverTimestamp,
   increment,
   arrayUnion,
   arrayRemove,
-  Timestamp,
   setDoc
 } from 'firebase/firestore';
 import { db } from './firebase';
 import { Product, User, Comment, CreateProductInput, CreateCommentInput } from './types';
-import { getAuth } from "firebase/auth";
 
 // Collection references
 export const productsCollection = collection(db, 'products');
@@ -42,6 +39,8 @@ export const createProduct = async (productData: CreateProductInput, userId: str
     upvotedBy: [],
     commentsCount: 0,
     month, // Add month field
+    productImage: productData.productImage || [],
+    image: productData.image || (productData.productImage && productData.productImage[0]) || ""
   };
 
   
@@ -101,7 +100,7 @@ export const getProducts = async (limitCount: number = 20): Promise<Product[]> =
     console.error("❌ Error in getProducts:", error)
     console.error("Error details:", {
       message: error instanceof Error ? error.message : 'Unknown error',
-      code: (error as any)?.code,
+      code: (error as unknown as { code?: string })?.code,
       stack: error instanceof Error ? error.stack : 'No stack trace'
     })
     throw error;
@@ -190,7 +189,13 @@ export const updateProduct = async (productId: string, userId: string, updates: 
   if (product.userId !== userId) {
     throw new Error('Unauthorized to update this product');
   }
-  await updateDoc(productRef, updates);
+  // Ensure productImage is always an array
+  const updateData = {
+    ...updates,
+    productImage: updates.productImage || product.productImage || [],
+    image: updates.image || (updates.productImage && updates.productImage[0]) || product.image || ""
+  };
+  await updateDoc(productRef, updateData);
 };
 
 // ===== USERS =====
@@ -221,16 +226,14 @@ export const updateUser = async (userId: string, updates: Partial<User>): Promis
   await updateDoc(userRef, updates);
 };
 
-export async function ensureUserDocument(user: any) {
-  const userRef = doc(usersCollection, user.uid);
+export async function ensureUserDocument(user: unknown) {
+  const userRef = doc(usersCollection, (user as { uid: string }).uid);
   const userSnap = await getDoc(userRef);
   if (!userSnap.exists()) {
     await setDoc(userRef, {
-      name: user.displayName || user.email || "Anonymous",
-      email: user.email,
-      profilePic: user.photoURL || "",
-      joinedAt: new Date(),
-      productsSubmitted: 0,
+      displayName: (user as { displayName: string }).displayName,
+      photoURL: (user as { photoURL: string }).photoURL,
+      createdAt: new Date(),
     });
   }
 }

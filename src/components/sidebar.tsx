@@ -1,27 +1,6 @@
 import React from 'react';
 
-const featured = [
-  {
-    name: "Social Intents",
-    desc: "AI Chatbots backed by your team in Microsoft Teams, Slack, and Google Chat.",
-    icon: '💬'
-  },
-  {
-    name: "Capgo",
-    desc: "Instant updates for Capacitor. Ship updates, fixes, changes, and features...",
-    icon: '⚡️'
-  },
-  {
-    name: "ServerScheduler",
-    desc: "Slash cloud costs with server scheduling. AWS, GCP, Azure.",
-    icon: '⏰'
-  },
-  {
-    name: "Startups.fm",
-    desc: "The podcast for bootstrapped founders.",
-    icon: '🎙️'
-  },
-];
+const featured: { icon?: React.ReactNode; name?: string; desc?: string }[] = [];
 
 const SpeakerIcon = () => (
     <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-700 h-6 w-6">
@@ -46,7 +25,7 @@ export default function Sidebar() {
                     <h2 className="text-lg font-bold text-gray-800">What will you launch today?</h2>
                     <SpeakerIcon />
                 </div>
-                <p className="text-sm text-gray-500 mt-2">Share what you're working on & get featured in-front of <span className="font-bold text-gray-700">17,563</span> founders.</p>
+                <p className="text-sm text-gray-500 mt-2">Share what you&apos;re working on & get featured in-front of <span className="font-bold text-gray-700">17,563</span> founders.</p>
                 <div className="mt-5 p-0.5 rounded-full bg-gradient-to-r from-cyan-400 via-pink-500 to-red-500 hover:shadow-lg transition-shadow">
                     <button className="bg-white w-full rounded-full px-6 py-2">
                         <span className="font-bold text-base text-gray-800">+ New Launch</span>
@@ -61,17 +40,20 @@ export default function Sidebar() {
                     <StarIcon />
                 </div>
                 <div className="space-y-5 mt-5">
-                    {featured.map((item, index) => (
-                        <div key={index} className="flex items-start gap-x-4">
-                            <div className="bg-gray-100 border rounded-lg h-10 w-10 flex items-center justify-center flex-shrink-0">
-                                <span className="text-xl">{item.icon}</span>
-                            </div>
-                            <div>
-                                <h3 className="font-bold text-base">{item.name}</h3>
-                                {item.desc && <p className="text-sm text-gray-500">{item.desc}</p>}
-                            </div>
-                        </div>
-                    ))}
+                    {featured.length > 1
+                      ? featured.map((item: { icon?: React.ReactNode; name?: string; desc?: string }, index: number) => (
+                          <div key={index} className="flex items-start gap-x-4">
+                              <div className="bg-gray-100 border rounded-lg h-10 w-10 flex items-center justify-center flex-shrink-0">
+                                  <span className="text-xl">{item.icon}</span>
+                              </div>
+                              <div>
+                                  <h3 className="font-bold text-base">{item.name}</h3>
+                                  {item.desc && <p className="text-sm text-gray-500">{item.desc}</p>}
+                              </div>
+                          </div>
+                        ))
+                      : <p>No Featured Products</p>
+                    }
                 </div>
             </div>
         </div>

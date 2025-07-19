@@ -1,6 +1,7 @@
 "use client"
 
 import { useState } from "react"
+import Image from 'next/image';
 
 interface UserProfile {
   id: string
@@ -109,9 +110,11 @@ export default function FindFollowers() {
                 <div className="flex items-center space-x-4">
                   {/* Avatar with hover effect */}
                   <div className="relative">
-                    <img
+                    <Image
                       src={user.avatar || "/placeholder.svg"}
                       alt={user.name}
+                      width={60}
+                      height={60}
                       className="w-16 h-16 rounded-full object-cover ring-2 ring-gray-100 group-hover:ring-gray-200 transition-all duration-200"
                     />
                   </div>
