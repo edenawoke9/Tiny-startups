@@ -7,22 +7,8 @@ import { CircleChevronUp } from "lucide-react"
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
 import Image from "next/image"
 import { Tag } from "lucide-react"
+import Link from "next/link"
 
-const TrendingIcon = () => (
-  <svg
-    xmlns="http://www.w3.org/2000/svg"
-    width="16"
-    height="16"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-    className="text-green-500"
-  >
-    <polyline points="22,7 13.5,15.5 8.5,10.5 2,17" />
-    <polyline points="16,7 22,7 22,13" />
-  </svg>
-)
 
 
  function StartupItem ({ startup, index, isPromoted = false, id }: { startup: any; index: number; isPromoted?: boolean; id:string; }){
@@ -109,8 +95,8 @@ const TrendingIcon = () => (
       </div>
       <div className="flex items-center pt-2 gap-2 flex-wrap">
         <Tag className="pl-2 "/>
-      {startup.tags && ((startup.tags).map((tag:string)=>(
-           <div className="text-black flex    shadow-b-sm  gap-2 h-full  text-sm">
+      {startup.tags && ((startup.tags).map((tag:string,index:any)=>(
+           <div key={index} className="text-black flex    shadow-b-sm  gap-2 h-full  text-sm">
             {tag}
             <span className="text-blue-400 h-full items-center pr-2">.</span>
            
@@ -238,9 +224,9 @@ export default function Products({ ActiveMonth }: { ActiveMonth: any }) {
             Join thousands of entrepreneurs who have successfully launched their startups. Get featured in our weekly
             showcase and reach potential customers and investors.
           </p>
-          <button className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
+          <Link href="/submit-product/lanuch" className="bg-gradient-to-r from-orange-500 to-pink-500 hover:from-orange-600 hover:to-pink-600 text-white font-bold px-8 py-4 rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-105">
             Submit Your Startup
-          </button>
+          </Link>
         </div>
       </div>
     </div>

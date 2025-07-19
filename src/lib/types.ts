@@ -11,7 +11,11 @@ export interface Product {
   commentsCount: number;
   tags: string[];
   month?: string; 
-  image:string;// Added month field
+  /**
+   * @deprecated Use productImage instead for multiple images
+   */
+  image?: string;
+  productImage: string[];
 }
 
 // User interface
@@ -39,7 +43,11 @@ export interface CreateProductInput {
   description: string;
   url: string;
   tags: string[];
-  image:string;
+  /**
+   * @deprecated Use productImage instead for multiple images
+   */
+  image?: string;
+  productImage: string[];
 }
 
 // Create comment input

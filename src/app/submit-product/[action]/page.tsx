@@ -1,42 +1,20 @@
 "use client"
 
-import { useState, useCallback, useEffect, useRef } from "react"
-import { useParams, useRouter } from "next/navigation"
+import { useState, useCallback, useRef } from "react"
+import { useRouter, useParams } from "next/navigation"
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
-import { createProduct, updateProduct, getProduct } from "@/lib/firestore"
+import { createProduct } from "@/lib/firestore"
 import { CreateProductInput } from "@/lib/types"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { CheckCircle, AlertCircle, MoreHorizontal } from "lucide-react"
+import { CheckCircle, AlertCircle } from "lucide-react"
 import { SignUp } from "@/components/Auth"
-interface state{
-  id:"string",
-  name:"string"
 
-}
-
-export default function SubmitProduct() {
+export default function CreateProductPage() {
   const params = useParams();
   const action = params.action as string;
-  const id = params.id as string | undefined;
-
-  // Set button text based on action
-  const [button, setButton] = useState<string>("Create");
-  let text
-  useEffect(()=>{
-    setButton(action === "update" ? "Update" : "Create");
-    if (action === "update"){
-      text="Update"
-    }
-    else{
-      text="Create"
-    }
-
-  },[action])
-  
- 
   const [formData, setFormData] = useState<CreateProductInput>({
     name: "",
     description: "",
@@ -50,7 +28,6 @@ export default function SubmitProduct() {
   const [submitStatus, setSubmitStatus] = useState<"idle" | "success" | "error">("idle")
   const [submitMessage, setSubmitMessage] = useState("")
   const [showSignUp, setShowSignUp] = useState(false);
-  const [originalProduct, setOriginalProduct] = useState<CreateProductInput | null>(null);
   const [logoImage, setLogoImage] = useState<string>("");
   const [productImages, setProductImages] = useState<string[]>([]);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -59,26 +36,6 @@ export default function SubmitProduct() {
 
   const { user, loading: authLoading, error, signInWithGoogle, signInWithGithub } = useFirebaseAuth();
   const router = useRouter()
-
-  useEffect(() => {
-    if (action === "update" && id) {
-      getProduct(id).then((product) => {
-        if (product) {
-          setOriginalProduct(product);
-          setFormData({
-            name: product.name ?? "",
-            description: product.description ?? "",
-            url: product.url ?? "",
-            tags: Array.isArray(product.tags) ? product.tags : [],
-            image: product.image ?? "",
-            productImage: product.productImage || [],
-          });
-          setLogoImage(product.image ?? "");
-          setProductImages(product.productImage || []);
-        }
-      });
-    }
-  }, [action, id]);
 
   const handleInputChange = useCallback((field: keyof CreateProductInput, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }))
@@ -151,71 +108,31 @@ export default function SubmitProduct() {
 
   const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
-
     if (!user) {
       setSubmitStatus("error");
       setSubmitMessage("Please sign in to submit a product");
       return;
     }
-
-    if (button === "Create" && (!formData.name.trim() || !formData.description.trim() || !formData.url.trim())) {
+    if (!formData.name.trim() || !formData.description.trim() || !formData.url.trim()) {
       setSubmitStatus("error");
       setSubmitMessage("Please fill in all required fields");
       return;
     }
-
-    if (button === "Create") {
-      // create logic
-      try {
-        setIsSubmitting(true);
-        setSubmitStatus("idle");
-        const productData = { ...formData, image: logoImage, productImage: productImages };
-        const productId = await createProduct(productData, user.uid);
-        setSubmitStatus("success");
-        setSubmitMessage("Product submitted successfully!");
-        router.push(`/products/${productId}`);
-      } catch (err) {
-        setSubmitStatus("error");
-        setSubmitMessage("Failed to submit product. Please try again.");
-      } finally {
-        setIsSubmitting(false);
-      }
-    } else if (button === "Update" && id) {
-      if (!originalProduct) return; // Wait for original data
-
-      // Build an object with only changed fields
-      const changedFields: Partial<CreateProductInput> = {};
-      (Object.keys(formData) as (keyof CreateProductInput)[]).forEach((key) => {
-        if (key === "tags") {
-          if (JSON.stringify(formData.tags) !== JSON.stringify(originalProduct.tags)) {
-            changedFields.tags = formData.tags;
-          }
-        } else if (key === "productImage") {
-          if (JSON.stringify(productImages) !== JSON.stringify(originalProduct.productImage)) {
-            changedFields.productImage = productImages;
-          }
-        } else if (key === "image") {
-          if (logoImage !== originalProduct.image) {
-            changedFields.image = logoImage;
-          }
-        } else if (formData[key] !== originalProduct[key]) {
-          changedFields[key] = formData[key];
-        }
-      });
-
-      if (Object.keys(changedFields).length === 0) {
-        alert("No changes to update.");
-        return;
-      }
-
-      try {
-        await updateProduct(id, user.uid, changedFields);
-        alert("Product updated!");
-      } catch (err) {
-        alert("Failed to update product.");
-      }
+    try {
+      setIsSubmitting(true);
+      setSubmitStatus("idle");
+      const productData = { ...formData, image: logoImage, productImage: productImages };
+      const productId = await createProduct(productData, user.uid);
+      setSubmitStatus("success");
+      setSubmitMessage("Product submitted successfully!");
+      router.push(`/products/${productId}`);
+    } catch (err) {
+      setSubmitStatus("error");
+      setSubmitMessage("Failed to submit product. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
-  }, [formData, user, router, button, id, originalProduct, productImages, logoImage]);
+  }, [formData, user, router, logoImage, productImages]);
 
   if (authLoading) {
     return (
@@ -337,7 +254,7 @@ export default function SubmitProduct() {
                 value={formData.name}
                 onChange={(e) => handleInputChange("name", e.target.value)}
                 className="w-full"
-                required={button === "Create"}
+                required
               />
             </div>
 
@@ -353,7 +270,7 @@ export default function SubmitProduct() {
                 onChange={(e) => handleInputChange("description", e.target.value)}
                 rows={4}
                 className="w-full"
-                required={button === "Create"}
+                required
               />
             </div>
 
@@ -369,7 +286,7 @@ export default function SubmitProduct() {
                 value={formData.url}
                 onChange={(e) => handleInputChange("url", e.target.value)}
                 className="w-full"
-                required={button === "Create"}
+                required
               />
             </div>
 
@@ -440,7 +357,7 @@ export default function SubmitProduct() {
               className="w-full bg-orange-500 hover:bg-orange-600 text-white font-semibold py-3 rounded-lg disabled:opacity-50"
               disabled={isSubmitting}
             >
-              {isSubmitting ? "Submitting..." : `${button}`}
+              {isSubmitting ? "Submitting..." : "Create"}
             </Button>
           </form>
 

@@ -42,6 +42,8 @@ export const createProduct = async (productData: CreateProductInput, userId: str
     upvotedBy: [],
     commentsCount: 0,
     month, // Add month field
+    productImage: productData.productImage || [],
+    image: productData.image || (productData.productImage && productData.productImage[0]) || ""
   };
 
   
@@ -190,7 +192,13 @@ export const updateProduct = async (productId: string, userId: string, updates: 
   if (product.userId !== userId) {
     throw new Error('Unauthorized to update this product');
   }
-  await updateDoc(productRef, updates);
+  // Ensure productImage is always an array
+  const updateData = {
+    ...updates,
+    productImage: updates.productImage || product.productImage || [],
+    image: updates.image || (updates.productImage && updates.productImage[0]) || product.image || ""
+  };
+  await updateDoc(productRef, updateData);
 };
 
 // ===== USERS =====

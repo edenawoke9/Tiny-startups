@@ -8,6 +8,7 @@ import { useFirebaseAuth } from "@/hooks/useFirebaseAuth"
 import { Product, Comment } from "@/lib/types"
 import React from "react"
 import { CircleChevronUp } from "lucide-react"
+import Image from "next/image"
 
 function UserName({ id }: { id: string }) {
   console.log("id is ",id)
@@ -172,13 +173,7 @@ export default function ProductPage({ params }: { params: any }) {
   const isUpvoted = user ? product.upvotedBy.includes(user.uid) : false
 
   // Sample carousel images
-  const carouselImages = [
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-    "/placeholder.svg?height=400&width=600",
-  ]
+  const carouselImages = Array.isArray(product.productImage) && product.productImage.length > 0 ? product.productImage : [];
 
   const nextSlide = () => {
     setCurrentSlide((prev) => (prev + 1) % carouselImages.length)
@@ -256,32 +251,20 @@ export default function ProductPage({ params }: { params: any }) {
           {/* Image Carousel */}
           <div className="p-6">
             <div className="relative">
-              <div className="overflow-x-auto flex gap-2 rounded-lg bg-gradient-to-r from-pink-100 via-purple-100 to-blue-100 ">
-                {carouselImages.map((image)=>(<div className="relative h-80 bg-white flex items-center justify-center w-72">
-                  <img
-                    src={image}
-                    alt="Product screenshot"
-                    className="max-h-full max-w-fit object-contain"
-                  />
-
-                  {/* Navigation Arrows */}
-                  
-                </div>
-            
-))}  </div>
-                
-              {/* Carousel Dots */}
-              <div className="flex justify-center mt-4 gap-2">
-                {carouselImages.map((_, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentSlide(index)}
-                    className={`w-2 h-2 rounded-full transition-colors ${
-                      index === currentSlide ? "bg-red-500" : "bg-gray-300"
-                    }`}
-                  />
-                ))}
+              <div className="overflow-x-auto flex gap-4 rounded-lg justify-center  ">
+                {carouselImages.length > 0 ? carouselImages.map((image: string, index: number) => (
+                  <div key={index} className="relative h-80 bg-gray-50 rounded-xl p-2 flex items-center shadow-sm justify-center border-gray-50 w-56">
+                    <img
+                      src={image}
+                      alt="Product screenshot"
+                      className="max-h-full  object-contain"
+                    />
+                  </div>
+                )) : (
+                  <div className="h-80 w-72 flex items-center justify-center text-gray-400">No images available</div>
+                )}
               </div>
+              
             </div>
           </div>
 
@@ -293,8 +276,8 @@ export default function ProductPage({ params }: { params: any }) {
               {user ? (
                 /* Comment Input */
                 <div className="flex gap-3 mb-6">
-                  <div className="w-8 h-8 bg-gradient-to-br from-orange-400 to-pink-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                    {user.displayName?.charAt(0) || user.email?.charAt(0) || 'U'}
+                  <div className="w-8 h-8  rounded-full flex items-center justify-center text-white text-sm font-medium">
+                  <Image src={user.profilePic||"/user.png"} height={25} width={25} alt="user profile" className="w-full h-full rounded-full"/>
                   </div>
                   <div className="flex-1">
                     <textarea
@@ -326,8 +309,8 @@ export default function ProductPage({ params }: { params: any }) {
             <div className="space-y-6">
               {comments.map((comment) => (
                 <div key={comment.id} className="flex gap-3">
-                  <div className="w-10 h-10 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full flex items-center justify-center text-white font-medium text-sm">
-                    <UserName id={comment.userId} />
+                  <div className="w-8 h-8  rounded-full flex items-center justify-center text-white text-sm font-medium">
+                  <Image src={user.profilePic||"/user.png"} height={25} width={25} alt="user profile" className="w-full h-full rounded-full"/>
                   </div>
                   <div className="flex-1">
                     <div className="mb-2 flex items-center justify-between">
