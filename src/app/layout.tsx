@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
-import { GeistSans } from "geist/font/sans";
-import { GeistMono } from "geist/font/mono";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import  "./module.css"
 import Header from "@/components/navbar/nav";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Create Next App",
@@ -17,7 +18,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={`relative ${GeistSans.className} ${GeistMono.className}`}>
+      <body className={`relative ${inter.className}`}>
         <Header/>
         <div >  {children }</div>
       
