@@ -26,6 +26,10 @@ export interface User {
   profilePic: string;
   joinedAt: Date;
   productsSubmitted: number;
+  username?: string;
+  linkedin?: string;
+  xcom?: string;
+  headline?: string;
 }
 
 // Comment interface

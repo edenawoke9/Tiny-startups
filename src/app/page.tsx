@@ -6,13 +6,14 @@ import Products from "./products/products"
 import RightCom from "../components/rightCom"
 import Header from "@/components/navbar/nav"
 import { MoveRight, MoveLeft } from "lucide-react"
+import MobileNav from "@/components/mobileNav"
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-white">
       <Header />
-
-      <div className="flex pl-24 pr-24 pt-28 gap-10 h-screen justify-between bg-white w-full">
+      <div className="md:hidden w-full"><MobileNav /></div>
+      <div className="flex md:pl-24 md:pr-24 pt-28 gap-10 h-screen justify-between bg-white w-full">
         <div className=" rounded-md p-6 w-fit flex flex-col min-w-0 text-black font-sans">
           <div>
             <h1 className="text-3xl font-semibold">
@@ -37,7 +38,7 @@ export default function Home() {
   )
 }
 
-export function MonthList() {
+ function MonthList() {
   const year = getYear(new Date())
   const months = Array.from({ length: 12 }, (_, i) => {
     const monthNum = i

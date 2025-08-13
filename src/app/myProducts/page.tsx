@@ -226,7 +226,7 @@ export default function MyProducts() {
             <div className="relative group">
               <div className="absolute -inset-2 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full blur opacity-75 group-hover:opacity-100 transition duration-300 animate-pulse"></div>
               <Link
-                href="/submit-product"
+                href="/submit-product/launch"
                 className="relative flex items-center justify-center h-16 w-16 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 rounded-full shadow-2xl hover:shadow-3xl transition-all duration-300 group-hover:scale-110"
               >
                 <Plus className="h-8 w-8 text-white" />

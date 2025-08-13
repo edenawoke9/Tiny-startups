@@ -29,6 +29,8 @@ export const ModalView = ({
 }) => {
   return (
     <Modal
+      
+      ariaHideApp={false}
       isOpen={clicked}
       onRequestClose={() => setClicked(false)}
       style={customStyles}

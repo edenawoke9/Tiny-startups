@@ -25,7 +25,7 @@ export default function Header() {
   }, [scrolled]);
 
   return (
-    <div className="flex  justify-center">
+    <div className=" hidden md:flex  justify-center">
       <div
         className={`
           fixed flex justify-between items-center p-4 z-[100]

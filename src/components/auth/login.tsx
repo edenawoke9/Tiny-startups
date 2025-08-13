@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { CheckCircle, AlertCircle } from "lucide-react";
 import { useFirebaseAuth } from "@/hooks/useFirebaseAuth";
+import { useRouter } from "next/navigation";
 
 interface LoginData {
   email: string;
@@ -29,6 +30,8 @@ export default function LoginForm() {
     "idle" | "success" | "error"
   >("idle");
   const [submitMessage, setSubmitMessage] = useState("");
+
+  const router = useRouter();
 
   const {
     signInWithGoogle,
@@ -81,6 +84,26 @@ export default function LoginForm() {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    try {
+      await signInWithGoogle();
+      router.push("/");
+    } catch (error) {
+      console.log(error);
+
+    }
+  };
+
+  const handleGithubSignIn = async () => {
+    try {
+      await signInWithGithub();
+      router.push("/");
+    } catch (error) {
+      console.log(error);
+    
+    }
+  };
+
   return (
     <div className="min-h-screen bg-white flex flex-col items-center justify-center px-4 py-12">
       {/* Header */}
@@ -92,10 +115,10 @@ export default function LoginForm() {
           Welcome back! Please enter your details.
         </p>
       </div>
-      <div className="w-full max-w-4xl">
-        <div className="flex gap-2 w-full py-10">
+      <div className="w-full flex  justify-center  ">
+       
           {/* Login Form */}
-          <div className="space-y-6 w-1/2 flex items-center ">
+          <div className="space-y-6 w-2/3 flex flex-col items-center ">
             <form onSubmit={handleSubmit} className="space-y-6 w-full">
               {/* Email */}
               <div>
@@ -157,7 +180,7 @@ export default function LoginForm() {
             <div className="flex flex-col gap-2 mt-6">
               <Button
                 type="button"
-                onClick={signInWithGoogle}
+                onClick={handleGoogleSignIn}
                 className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 flex items-center gap-2 justify-center"
                 disabled={socialLoading}
               >
@@ -166,10 +189,7 @@ export default function LoginForm() {
               </Button>
               <Button
                 type="button"
-                onClick={() => {
-                  console.log('GitHub button clicked');
-                  signInWithGithub();
-                }}
+                onClick={handleGithubSignIn}
                 className="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-100 flex items-center gap-2 justify-center"
                 disabled={socialLoading}
               >
@@ -180,7 +200,7 @@ export default function LoginForm() {
               {socialLoading && <p className="text-gray-500 mt-2">Loading...</p>}
             </div>
           </div>
-        </div>
+      
       </div>
     </div>
   );

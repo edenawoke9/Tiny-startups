@@ -9,9 +9,13 @@ import {
   User as FirebaseUser,
 } from 'firebase/auth';
 import { getUser, ensureUserDocument } from '@/lib/firestore';
+import { User } from '@/lib/types';
+
+// Extended user type that merges Firebase User with our custom User properties
+type ExtendedUser = FirebaseUser & Partial<User>;
 
 export function useFirebaseAuth() {
-  const [user, setUser] = useState<FirebaseUser | null>(null); // allow merged user
+  const [user, setUser] = useState<ExtendedUser | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -23,10 +27,10 @@ export function useFirebaseAuth() {
         try {
           await ensureUserDocument(firebaseUser);
           const dbUser = await getUser(firebaseUser.uid);
-          setUser({ ...firebaseUser, ...dbUser });
+          setUser({ ...firebaseUser, ...dbUser } as ExtendedUser);
         } catch (err) {
           console.error('Error ensuring user document:', err);
-          setUser(firebaseUser);
+          setUser(firebaseUser as ExtendedUser);
         }
       } else {
         setUser(null);
@@ -40,16 +44,11 @@ export function useFirebaseAuth() {
     setError(null);
     setLoading(true);
     try {
-      console.log('Attempting Google sign-in...');
-      console.log('Current domain:', window.location.origin);
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      console.log('Google sign-in successful:', result.user);
+      await signInWithPopup(auth, provider);
     } catch (err: unknown) {
-      console.error('Google sign-in error:', err);
-      console.error('Error code:', (err as Error).code);
-      console.error('Error message:', (err as Error).message);
-      setError(`${(err as Error).code}: ${(err as Error).message}`);
+      const error = err as { code?: string; message?: string };
+      setError(`${error.code}: ${error.message}`);
     } finally {
       setLoading(false);
     }
@@ -59,15 +58,11 @@ export function useFirebaseAuth() {
     setError(null);
     setLoading(true);
     try {
-      console.log('Attempting GitHub sign-in...');
       const provider = new GithubAuthProvider();
-      const result = await signInWithPopup(auth, provider);
-      console.log('GitHub sign-in successful:', result.user);
+      await signInWithPopup(auth, provider);
     } catch (err: unknown) {
-      console.error('GitHub sign-in error:', err);
-      console.error('Error code:', (err as Error).code);
-      console.error('Error message:', (err as Error).message);
-      setError(`${(err as Error).code}: ${(err as Error).message}`);
+      const error = err as { code?: string; message?: string };
+      setError(`${error.code}: ${error.message}`);
     } finally {
       setLoading(false);
     }
